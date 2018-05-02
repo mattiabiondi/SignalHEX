@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Signal Strength Heatmap</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="main">All signals</string>
+    <string name="umts">UMTS</string>
+    <string name="lte">LTE</string>
+    <string name="wifi">Wi-Fi</string>
+</resources>
