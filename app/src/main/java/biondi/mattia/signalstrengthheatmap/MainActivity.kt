@@ -25,7 +25,7 @@ class MainActivity :
         NavigationView.OnNavigationItemSelectedListener,
         OnMapReadyCallback {
 
-    // Punto di ingresso per il FusedLocationProvider
+    // Inizializzazione del FusedLocationProvider
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     // Codice di richiesta
@@ -213,15 +213,10 @@ class MainActivity :
         }
     }
 
-    private fun updateValuesFromBundle(savedInstanceState: Bundle?) { //TODO pensa a come fare
-        // Al primo avvio dell'applicazione aggiunge Main Fragment all'interno del layout che si presenta all'utente
-        if(savedInstanceState == null) {
-            //fragmentManager.beginTransaction().add(R.id.content_frame, Main_Fragment()).commit()
-            // Imposta la voce "All signals" come selezionata, indicando che siamo in Main Fragment
-            nav_view.setCheckedItem(R.id.main)
-        } else {
-            // Aggiorna il valore di requestingLocationUpdates dal Bundle
-            if (savedInstanceState.keySet().contains(REQUESTING_LOCATION_UPDATES_KEY)) {
+    private fun updateValuesFromBundle(savedInstanceState: Bundle?) {
+        savedInstanceState ?: return
+            // Aggiorna i valori dal Bundle
+            if (savedInstanceState.keySet()?.contains(REQUESTING_LOCATION_UPDATES_KEY) as Boolean) {
                 requestingLocationUpdates = savedInstanceState.getBoolean(REQUESTING_LOCATION_UPDATES_KEY)
             }
             if (savedInstanceState.keySet().contains(KEY_LOCATION)) {
@@ -230,7 +225,7 @@ class MainActivity :
             if (savedInstanceState.keySet().contains(KEY_CAMERA_POSITION)) {
                 cameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION)
             }
-        }
+
         // Aggiorna la UI per riprendere lo stato precedente
         updateLocationUI()
     }
@@ -273,7 +268,7 @@ class MainActivity :
 
         // TODO: implementa impostazioni
         when (item.itemId) {
-            R.id.action_settings -> {
+            R.id.play -> {
 
             }
         }
@@ -281,47 +276,19 @@ class MainActivity :
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-
-        // Inizia la transizione per cambiare Fragment quando si seleziona una voce del Navigation Drawer
-        val transaction = fragmentManager.beginTransaction()
-
-        // TODO: riporta le icone su off (se ruoti lo schermo tornano off)
-
         //TODO: argomenta il "when"
         // Kotlin mette a disposizione il "when", un costrutto molto simile allo "switch"
         when (item.itemId) {
-            R.id.main -> {
-                // Rimpiazza il contenuto del layout (il Fragment attuale) con Main Fragment
-                //transaction.replace(R.id.content_frame, Main_Fragment())
-            }
             R.id.umts -> {
-                // Sostituisce l'icona della voce selezionata
-                item.setIcon(R.drawable.ic_cellular_on)
 
-                // Rimpiazza il contenuto del layout (il Fragment attuale) con UMTS Fragment
-                transaction.replace(R.id.content_frame, UMTS_Fragment())
             }
             R.id.lte -> {
-                // Sostituisce l'icona della voce selezionata
-                item.setIcon(R.drawable.ic_cellular_on)
 
-                // Rimpiazza il contenuto del layout (il Fragment attuale) con LTE Fragment
-                transaction.replace(R.id.content_frame, LTE_Fragment())
             }
             R.id.wifi -> {
-                // Sostituisce l'icona della voce selezionata
-                item.setIcon(R.drawable.ic_wifi_on)
 
-                // Rimpiazza il contenuto del layout (il Fragment attuale) con Wi-Fi Fragment
-                transaction.replace(R.id.content_frame, WIFI_Fragment())
             }
         }
-
-        // Aggiunge allo stack il Fragment che stiamo per sostituire, in modo da poterci tornare premendo "Back"
-        transaction.addToBackStack(null)
-        // Conclude la transizione
-        transaction.commit()
-
         // Chiude il Navigation Drawer
         drawer_layout.closeDrawer(GravityCompat.START)
         return true

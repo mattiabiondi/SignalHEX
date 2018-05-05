@@ -1,30 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:showIn="navigation_view">
 
     <group
         android:checkableBehavior="single">
         <item
-            android:id="@+id/main"
-            android:icon="@drawable/ic_home"
-            android:title="@string/main" />
-    </group>
-
-    <group
-        android:id="@+id/submenu"
-        android:checkableBehavior="single">
-        <item
             android:id="@+id/umts"
             android:icon="@drawable/ic_cellular_off"
-            android:title="@string/umts" />
+            android:title="@string/umts"
+            app:actionLayout="@layout/switch_layout"/>
         <item
             android:id="@+id/lte"
             android:icon="@drawable/ic_cellular_off"
-            android:title="@string/lte" />
+            android:title="@string/lte"
+            app:actionLayout="@layout/switch_layout"/>
         <item
             android:id="@+id/wifi"
             android:icon="@drawable/ic_wifi_off"
-            android:title="@string/wifi" />
+            android:title="@string/wifi"
+            app:actionLayout="@layout/switch_layout"/>
+    </group>
+
+    <group
+        android:id="@+id/settings_menu">
+        <item
+            android:id="@+id/settings"
+            android:title="@string/settings"
+            android:icon="@drawable/ic_settings"/>
     </group>
 </menu>
