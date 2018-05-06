@@ -7,27 +7,30 @@
     <group
         android:checkableBehavior="single">
         <item
-            android:id="@+id/umts"
+            android:id="@+id/umts_item"
             android:icon="@drawable/ic_cellular_off"
             android:title="@string/umts"
-            app:actionLayout="@layout/switch_layout"/>
+            android:checkable="false"
+            app:actionLayout="@layout/umts_switch_layout"/>
         <item
-            android:id="@+id/lte"
+            android:id="@+id/lte_item"
             android:icon="@drawable/ic_cellular_off"
             android:title="@string/lte"
-            app:actionLayout="@layout/switch_layout"/>
+            android:checkable="false"
+            app:actionViewClass="android.widget.Switch"/>
         <item
-            android:id="@+id/wifi"
+            android:id="@+id/wifi_item"
             android:icon="@drawable/ic_wifi_off"
             android:title="@string/wifi"
-            app:actionLayout="@layout/switch_layout"/>
+            android:checkable="false"
+            app:actionViewClass="android.widget.Switch"/>
     </group>
 
     <group
         android:id="@+id/settings_menu">
         <item
             android:id="@+id/settings"
-            android:title="@string/settings"
-            android:icon="@drawable/ic_settings"/>
+            android:icon="@drawable/ic_settings"
+            android:title="@string/settings"/>
     </group>
 </menu>

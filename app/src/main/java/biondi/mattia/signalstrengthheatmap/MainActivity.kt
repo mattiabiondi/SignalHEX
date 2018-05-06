@@ -11,19 +11,25 @@ import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Switch
 import android.widget.Toast
+import android.widget.ToggleButton
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.app_bar_main.*
-import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.android.synthetic.main.main_layout.*
+import kotlinx.android.synthetic.main.app_bar_layout.*
+import kotlinx.android.synthetic.main.content_layout.*
 
 class MainActivity :
         AppCompatActivity(),
         NavigationView.OnNavigationItemSelectedListener,
         OnMapReadyCallback {
+
+    private lateinit var umtsSwitch: Switch
+    private lateinit var lteSwitch: Switch
+    private lateinit var wifiSwitch: Switch
 
     // Inizializzazione del FusedLocationProvider
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
@@ -67,7 +73,7 @@ class MainActivity :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.main_layout)
 
         // Imposta una SupportActionBar per avere a disposizione maggiori controlli al posto di una normale ActionBar
         setSupportActionBar(toolbar)
@@ -80,6 +86,10 @@ class MainActivity :
 
         // Imposta un Listener sulla barra di navigazione
         nav_view.setNavigationItemSelectedListener(this)
+
+        umtsSwitch = findViewById(R.id.umts_switch)
+        lteSwitch = findViewById(R.id.lte_switch)
+        wifiSwitch = findViewById(R.id.wifi_switch)
 
         // Recupera il Fragment in cui mostrare la mappa
         // Nota: è necessario il cast a MapFragment in quanto la funzione ritorna un Fragment
@@ -257,7 +267,7 @@ class MainActivity :
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main, menu)
+        menuInflater.inflate(R.menu.app_bar_menu, menu)
         return true
     }
 
@@ -278,19 +288,14 @@ class MainActivity :
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         //TODO: argomenta il "when"
         // Kotlin mette a disposizione il "when", un costrutto molto simile allo "switch"
+
         when (item.itemId) {
-            R.id.umts -> {
-
-            }
-            R.id.lte -> {
-
-            }
-            R.id.wifi -> {
+            R.id.settings -> {
 
             }
         }
         // Chiude il Navigation Drawer
-        drawer_layout.closeDrawer(GravityCompat.START)
+        //drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }
 }
