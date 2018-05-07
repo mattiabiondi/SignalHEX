@@ -11,9 +11,7 @@ import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Switch
 import android.widget.Toast
-import android.widget.ToggleButton
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.CameraPosition
@@ -21,15 +19,14 @@ import com.google.android.gms.maps.model.LatLng
 import kotlinx.android.synthetic.main.main_layout.*
 import kotlinx.android.synthetic.main.app_bar_layout.*
 import kotlinx.android.synthetic.main.content_layout.*
+import kotlinx.android.synthetic.main.lte_switch_layout.*
+import kotlinx.android.synthetic.main.umts_switch_layout.*
+import kotlinx.android.synthetic.main.wifi_switch_layout.*
 
 class MainActivity :
         AppCompatActivity(),
         NavigationView.OnNavigationItemSelectedListener,
         OnMapReadyCallback {
-
-    private lateinit var umtsSwitch: Switch
-    private lateinit var lteSwitch: Switch
-    private lateinit var wifiSwitch: Switch
 
     // Inizializzazione del FusedLocationProvider
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
@@ -71,6 +68,10 @@ class MainActivity :
     private val KEY_LOCATION = "location"
     private val KEY_CAMERA_POSITION = "camera_position"
 
+    private var umtsBoolean = false
+    private var lteBoolean = false
+    private var wifiBoolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_layout)
@@ -86,10 +87,6 @@ class MainActivity :
 
         // Imposta un Listener sulla barra di navigazione
         nav_view.setNavigationItemSelectedListener(this)
-
-        umtsSwitch = findViewById(R.id.umts_switch)
-        lteSwitch = findViewById(R.id.lte_switch)
-        wifiSwitch = findViewById(R.id.wifi_switch)
 
         // Recupera il Fragment in cui mostrare la mappa
         // Nota: è necessario il cast a MapFragment in quanto la funzione ritorna un Fragment
@@ -290,12 +287,30 @@ class MainActivity :
         // Kotlin mette a disposizione il "when", un costrutto molto simile allo "switch"
 
         when (item.itemId) {
+            R.id.umts_item -> {
+                umtsBoolean = !umtsBoolean
+                umts_switch.isChecked = umtsBoolean
+                if(umtsBoolean) item.setIcon(R.drawable.ic_cellular_on)
+                else item.setIcon(R.drawable.ic_cellular_off)
+            }
+            R.id.lte_item -> {
+                lteBoolean = !lteBoolean
+                lte_switch.isChecked = lteBoolean
+                if(lteBoolean) item.setIcon(R.drawable.ic_cellular_on)
+                else item.setIcon(R.drawable.ic_cellular_off)
+            }
+            R.id.wifi_item -> {
+                wifiBoolean = !wifiBoolean
+                wifi_switch.isChecked = wifiBoolean
+                if(wifiBoolean) item.setIcon(R.drawable.ic_wifi_on)
+                else item.setIcon(R.drawable.ic_wifi_off)
+            }
             R.id.settings -> {
 
             }
         }
         // Chiude il Navigation Drawer
-        //drawer_layout.closeDrawer(GravityCompat.START)
+        drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }
 }
