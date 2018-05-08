@@ -16,6 +16,9 @@ import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.TileOverlay
+import com.google.android.gms.maps.model.TileOverlayOptions
+import com.google.maps.android.heatmaps.HeatmapTileProvider
 import kotlinx.android.synthetic.main.main_layout.*
 import kotlinx.android.synthetic.main.app_bar_layout.*
 import kotlinx.android.synthetic.main.content_layout.*
@@ -68,9 +71,20 @@ class MainActivity :
     private val KEY_LOCATION = "location"
     private val KEY_CAMERA_POSITION = "camera_position"
 
+    // Booleani che controllano quale mappa visualizzare
     private var umtsBoolean = false
     private var lteBoolean = false
     private var wifiBoolean = false
+
+    // Boolean che controlla se deve ottenere o meno i dati
+    private var startBoolean = false
+
+    // Lista delle coordinate ottenute dal dispositivo
+    private var list = mutableListOf<LatLng>()
+    // Istanza del HeatmapTileProvider
+    private var provider: HeatmapTileProvider? = null
+    // Istanza del tile overlay
+    private var overlay: TileOverlay? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -157,6 +171,7 @@ class MainActivity :
         map = googleMap
         // Ottiene la posizione attuale
         getLocation()
+        // Aggiorna l'interfaccia della mappa (mostra o nasconde i comandi)
         updateLocationUI()
     }
 
@@ -194,6 +209,8 @@ class MainActivity :
                 for (location in locationResult.locations) {
                     textLat.text = "Latitude: " + location.latitude.toString()
                     textLon.text = "Longitude: " + location.longitude.toString()
+                    // Passa la posizione attuale alla funzione che si occupa di generare la Heatmap
+                    addHeatMap(location)
                 }
             }
         }
@@ -275,8 +292,10 @@ class MainActivity :
 
         // TODO: implementa impostazioni
         when (item.itemId) {
-            R.id.play -> {
-
+            R.id.start -> {
+                startBoolean = !startBoolean
+                if (startBoolean) item.setIcon(R.drawable.ic_pause)
+                else item.setIcon(R.drawable.ic_play)
             }
         }
         return true
@@ -286,6 +305,7 @@ class MainActivity :
         //TODO: argomenta il "when"
         // Kotlin mette a disposizione il "when", un costrutto molto simile allo "switch"
 
+        // Aggiorna le icone del Navigation Drawer quando vengono selezionate
         when (item.itemId) {
             R.id.umts_item -> {
                 umtsBoolean = !umtsBoolean
@@ -312,5 +332,22 @@ class MainActivity :
         // Chiude il Navigation Drawer
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
+    }
+
+    private fun addHeatMap(location: Location) {
+        // Aggiunge la posizione attuale alla lista di coordinate
+        list.add(LatLng(location.latitude, location.longitude))
+        // Controlla se bisogna inizializzare il provider
+        if (provider == null) {
+            // Inizializza il provider, passandogli i dati presenti in lista (nessuno al momento della creazione)
+            provider = HeatmapTileProvider.Builder().data(list).build()
+            // Aggiunge l'overlay alla mappa, utilizzando il provider
+            overlay = map?.addTileOverlay(TileOverlayOptions().tileProvider(provider))
+        } else {
+            // Modifica i dati nella lista
+            provider?.setData(list)
+            // Forza un ricaricamento dei punti sulla mappa
+            overlay?.clearTileCache()
+        }
     }
 }
