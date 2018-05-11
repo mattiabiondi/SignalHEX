@@ -1,5 +1,6 @@
 package biondi.mattia.signalstrengthheatmap
 
+import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
@@ -8,6 +9,7 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
@@ -69,15 +71,23 @@ class MainActivity :
     // Chiavi per memorizzare gli stati dell'activity
     private val REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key"
     private val KEY_LOCATION = "location"
-    private val KEY_CAMERA_POSITION = "camera_position"
 
     // Booleani che controllano quale mappa visualizzare
     private var umtsBoolean = false
+    private val UMTS_BOOLEAN_KEY = "umts-boolean"
     private var lteBoolean = false
+    private val LTE_BOOLEAN_KEY = "lte-boolean"
     private var wifiBoolean = false
+    private val WIFI_BOOLEAN_KEY = "wifi-boolean"
 
     // Boolean che controlla se deve ottenere o meno i dati
     private var startBoolean = false
+    private val START_KEY = "start"
+
+    // Referenze ai pulsanti del menu per modificarne le icone a runtime
+    private var umtsItem: MenuItem? = null
+    private var lteItem: MenuItem? = null
+    private var wifiItem: MenuItem? = null
 
     // Lista delle coordinate ottenute dal dispositivo
     private var list = mutableListOf<LatLng>()
@@ -117,8 +127,6 @@ class MainActivity :
         createLocationRequest()
         // Crea l'oggetto che si occuperà di eseguire i comandi dopo aver ottenuto la posizione
         createLocationCallback()
-        // Chiama il metodo per riprendere i valori salvati dalla precedente istanza dell'activity (se esistono)
-        updateValuesFromBundle(savedInstanceState)
     }
 
     override fun onResume() {
@@ -133,7 +141,25 @@ class MainActivity :
 
     override fun onSaveInstanceState(outState: Bundle?) {
         outState?.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, requestingLocationUpdates)
+        outState?.putParcelable(KEY_LOCATION, currentLocation)
+        outState?.putBoolean(START_KEY, startBoolean)
+        outState?.putBoolean(UMTS_BOOLEAN_KEY, umtsBoolean)
+        outState?.putBoolean(LTE_BOOLEAN_KEY, lteBoolean)
+        outState?.putBoolean(WIFI_BOOLEAN_KEY, wifiBoolean)
         super.onSaveInstanceState(outState)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        // Chiama la superclasse in modo da recuperare la gerarchia della view
+        super.onRestoreInstanceState(savedInstanceState)
+        // Recupera lo stato delle variabili dall'istanza salvata
+        requestingLocationUpdates = savedInstanceState?.getBoolean(REQUESTING_LOCATION_UPDATES_KEY) as Boolean
+        currentLocation = savedInstanceState.getParcelable(KEY_LOCATION)
+        startBoolean = savedInstanceState.getBoolean(START_KEY)
+        umtsBoolean = savedInstanceState.getBoolean(UMTS_BOOLEAN_KEY)
+        lteBoolean = savedInstanceState.getBoolean(LTE_BOOLEAN_KEY)
+        wifiBoolean = savedInstanceState.getBoolean(WIFI_BOOLEAN_KEY)
+        invalidateOptionsMenu()
     }
 
     private fun getLocationPermission () {
@@ -207,6 +233,8 @@ class MainActivity :
             override fun onLocationResult(locationResult: LocationResult?) {
                 locationResult ?: return
                 for (location in locationResult.locations) {
+                    // Aggiorna la posizione attuale
+                    currentLocation = location
                     textLat.text = "Latitude: " + location.latitude.toString()
                     textLon.text = "Longitude: " + location.longitude.toString()
                     // Passa la posizione attuale alla funzione che si occupa di generare la Heatmap
@@ -237,23 +265,6 @@ class MainActivity :
         }
     }
 
-    private fun updateValuesFromBundle(savedInstanceState: Bundle?) {
-        savedInstanceState ?: return
-            // Aggiorna i valori dal Bundle
-            if (savedInstanceState.keySet()?.contains(REQUESTING_LOCATION_UPDATES_KEY) as Boolean) {
-                requestingLocationUpdates = savedInstanceState.getBoolean(REQUESTING_LOCATION_UPDATES_KEY)
-            }
-            if (savedInstanceState.keySet().contains(KEY_LOCATION)) {
-                currentLocation = savedInstanceState.getParcelable(KEY_LOCATION)
-            }
-            if (savedInstanceState.keySet().contains(KEY_CAMERA_POSITION)) {
-                cameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION)
-            }
-
-        // Aggiorna la UI per riprendere lo stato precedente
-        updateLocationUI()
-    }
-
     private fun updateLocationUI() {
         // Elvis operator TODO magari spiega
         map ?: return
@@ -272,6 +283,17 @@ class MainActivity :
         }
     }
 
+    private fun updateIcons() {
+        if(umtsBoolean) umtsItem?.setIcon(R.drawable.ic_cellular_on)
+        else umtsItem?.setIcon(R.drawable.ic_cellular_off)
+
+        if(lteBoolean) lteItem?.setIcon(R.drawable.ic_cellular_on)
+        else lteItem?.setIcon(R.drawable.ic_cellular_off)
+
+        if(wifiBoolean) wifiItem?.setIcon(R.drawable.ic_wifi_on)
+        else wifiItem?.setIcon(R.drawable.ic_wifi_off)
+    }
+
     override fun onBackPressed() {
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START)
@@ -285,6 +307,14 @@ class MainActivity :
         return true
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        if (startBoolean) menu?.findItem(R.id.start_item)?.setIcon(R.drawable.ic_pause)
+        else menu?.findItem(R.id.start_item)?.setIcon(R.drawable.ic_play)
+
+        updateIcons()
+        return true
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -292,62 +322,87 @@ class MainActivity :
 
         // TODO: implementa impostazioni
         when (item.itemId) {
-            R.id.start -> {
+            R.id.start_item -> {
                 startBoolean = !startBoolean
-                if (startBoolean) item.setIcon(R.drawable.ic_pause)
-                else item.setIcon(R.drawable.ic_play)
+                invalidateOptionsMenu()
+            }
+            R.id.refresh -> {
+                val alert = AlertDialog.Builder(this)
+                alert.setMessage(R.string.alert_dialog_message)
+                        .setTitle(R.string.alert_dialog_title)
+                alert.setPositiveButton(R.string.alert_dialog_positive, DialogInterface.OnClickListener {
+                    dialog, which ->
+                    // Svuota la lista
+                    list.clear()
+                    // Aggiungo l'ultima posizione nota perchè non si può passare una lista vuota a setData
+                    // todo prima posizione???
+                    list.add(LatLng(currentLocation?.latitude as Double, currentLocation?.longitude as Double))
+                    if (provider != null) {
+                        // Modifica i dati del provider
+                        provider?.setData(list)
+                        // Forza un ricaricamento dei punti sulla mappa
+                        overlay?.clearTileCache()
+                    }
+
+                    startBoolean = false
+                    invalidateOptionsMenu()
+                })
+                alert.setNegativeButton(R.string.alert_dialog_negative, DialogInterface.OnClickListener {
+                    dialog, which ->  //niente
+                })
+                val dialog = alert.create()
+                dialog.show()
             }
         }
         return true
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        //TODO: argomenta il "when"
-        // Kotlin mette a disposizione il "when", un costrutto molto simile allo "switch"
-
         // Aggiorna le icone del Navigation Drawer quando vengono selezionate
         when (item.itemId) {
             R.id.umts_item -> {
+                umtsItem = item
                 umtsBoolean = !umtsBoolean
                 umts_switch.isChecked = umtsBoolean
-                if(umtsBoolean) item.setIcon(R.drawable.ic_cellular_on)
-                else item.setIcon(R.drawable.ic_cellular_off)
             }
             R.id.lte_item -> {
+                lteItem = item
                 lteBoolean = !lteBoolean
                 lte_switch.isChecked = lteBoolean
-                if(lteBoolean) item.setIcon(R.drawable.ic_cellular_on)
-                else item.setIcon(R.drawable.ic_cellular_off)
             }
             R.id.wifi_item -> {
+                wifiItem = item
                 wifiBoolean = !wifiBoolean
                 wifi_switch.isChecked = wifiBoolean
-                if(wifiBoolean) item.setIcon(R.drawable.ic_wifi_on)
-                else item.setIcon(R.drawable.ic_wifi_off)
             }
             R.id.settings -> {
 
             }
         }
+        invalidateOptionsMenu()
         // Chiude il Navigation Drawer
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }
 
     private fun addHeatMap(location: Location) {
-        // Aggiunge la posizione attuale alla lista di coordinate
-        list.add(LatLng(location.latitude, location.longitude))
-        // Controlla se bisogna inizializzare il provider
-        if (provider == null) {
-            // Inizializza il provider, passandogli i dati presenti in lista (nessuno al momento della creazione)
-            provider = HeatmapTileProvider.Builder().data(list).build()
-            // Aggiunge l'overlay alla mappa, utilizzando il provider
-            overlay = map?.addTileOverlay(TileOverlayOptions().tileProvider(provider))
-        } else {
-            // Modifica i dati nella lista
-            provider?.setData(list)
-            // Forza un ricaricamento dei punti sulla mappa
-            overlay?.clearTileCache()
+        // Se il pulsante è in "pausa" non salva nessuna coordinata
+        if(startBoolean) {
+            // Aggiunge la posizione attuale alla lista di coordinate
+            list.add(LatLng(location.latitude, location.longitude))
+
+            // Controlla se bisogna inizializzare il provider
+            if (provider == null) {
+                // Inizializza il provider, passandogli i dati presenti in lista (nessuno al momento della creazione)
+                provider = HeatmapTileProvider.Builder().data(list).build()
+                // Aggiunge l'overlay alla mappa, utilizzando il provider
+                overlay = map?.addTileOverlay(TileOverlayOptions().tileProvider(provider))
+            } else {
+                // Modifica i dati del provider
+                provider?.setData(list)
+                // Forza un ricaricamento dei punti sulla mappa
+                overlay?.clearTileCache()
+            }
         }
     }
 }
