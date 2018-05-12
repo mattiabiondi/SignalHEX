@@ -16,7 +16,6 @@ import android.view.MenuItem
 import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.TileOverlay
 import com.google.android.gms.maps.model.TileOverlayOptions
@@ -64,9 +63,6 @@ class MainActivity :
 
     // La mappa
     private var map: GoogleMap? = null
-
-    // La visuale della mappa
-    private lateinit var cameraPosition: CameraPosition
 
     // Chiavi per memorizzare gli stati dell'activity
     private val REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key"
@@ -159,13 +155,12 @@ class MainActivity :
         umtsBoolean = savedInstanceState.getBoolean(UMTS_BOOLEAN_KEY)
         lteBoolean = savedInstanceState.getBoolean(LTE_BOOLEAN_KEY)
         wifiBoolean = savedInstanceState.getBoolean(WIFI_BOOLEAN_KEY)
-        invalidateOptionsMenu()
     }
 
     private fun getLocationPermission () {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // Permessi non ottenuti
-            // Fornisce una spiegazione all'utente se quest'ultimo nega più volte i permessi per accedere alla posizione //TODO articola
+            // Fornisce una spiegazione all'utente se quest'ultimo nega più volte i permessi per accedere alla posizione
             if(ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.ACCESS_FINE_LOCATION)) {
                 Toast.makeText(this, "Location permission needed.", Toast.LENGTH_SHORT).show()
             } else {
@@ -266,7 +261,6 @@ class MainActivity :
     }
 
     private fun updateLocationUI() {
-        // Elvis operator TODO magari spiega
         map ?: return
 
         try {
@@ -283,6 +277,7 @@ class MainActivity :
         }
     }
 
+    // TODO: handle screen rotate
     private fun updateIcons() {
         if(umtsBoolean) umtsItem?.setIcon(R.drawable.ic_cellular_on)
         else umtsItem?.setIcon(R.drawable.ic_cellular_off)
@@ -310,7 +305,6 @@ class MainActivity :
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         if (startBoolean) menu?.findItem(R.id.start_item)?.setIcon(R.drawable.ic_pause)
         else menu?.findItem(R.id.start_item)?.setIcon(R.drawable.ic_play)
-
         updateIcons()
         return true
     }
@@ -320,7 +314,6 @@ class MainActivity :
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
 
-        // TODO: implementa impostazioni
         when (item.itemId) {
             R.id.start_item -> {
                 startBoolean = !startBoolean
@@ -332,10 +325,11 @@ class MainActivity :
                         .setTitle(R.string.alert_dialog_title)
                 alert.setPositiveButton(R.string.alert_dialog_positive, DialogInterface.OnClickListener {
                     dialog, which ->
+                    startBoolean = false
+                    invalidateOptionsMenu()
                     // Svuota la lista
                     list.clear()
                     // Aggiungo l'ultima posizione nota perchè non si può passare una lista vuota a setData
-                    // todo prima posizione???
                     list.add(LatLng(currentLocation?.latitude as Double, currentLocation?.longitude as Double))
                     if (provider != null) {
                         // Modifica i dati del provider
@@ -343,9 +337,6 @@ class MainActivity :
                         // Forza un ricaricamento dei punti sulla mappa
                         overlay?.clearTileCache()
                     }
-
-                    startBoolean = false
-                    invalidateOptionsMenu()
                 })
                 alert.setNegativeButton(R.string.alert_dialog_negative, DialogInterface.OnClickListener {
                     dialog, which ->  //niente
@@ -376,7 +367,7 @@ class MainActivity :
                 wifi_switch.isChecked = wifiBoolean
             }
             R.id.settings -> {
-
+                // TODO: implementa impostazioni
             }
         }
         invalidateOptionsMenu()
@@ -397,7 +388,7 @@ class MainActivity :
                 provider = HeatmapTileProvider.Builder().data(list).build()
                 // Aggiunge l'overlay alla mappa, utilizzando il provider
                 overlay = map?.addTileOverlay(TileOverlayOptions().tileProvider(provider))
-            } else {
+            } else { // TODO facendo così mostra l'ultimo punto
                 // Modifica i dati del provider
                 provider?.setData(list)
                 // Forza un ricaricamento dei punti sulla mappa
