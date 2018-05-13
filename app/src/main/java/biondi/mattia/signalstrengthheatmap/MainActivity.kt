@@ -42,13 +42,14 @@ class MainActivity :
 
     // Codice di richiesta
     private val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
-    private val PERMISSIONS_REQUEST_ACCESS_WIFI_STATE = 2
 
     // Autorizzazioni
     private var locationPermission = false
 
     // Posizione attuale
     private var currentLocation: Location? = null
+    // Posizione precedente, serve per evitare che WeightedLatLng presenti la sua proprietà additiva (è praticamente impossibile ritornare sulla stessa coordinata)
+    private var previousLocation: Location? = null
 
     // Richiesta di posizione
     private var locationRequest: LocationRequest? = null
@@ -235,6 +236,7 @@ class MainActivity :
                 locationResult ?: return
                 for (location in locationResult.locations) {
                     // Aggiorna la posizione attuale
+                    previousLocation = currentLocation
                     currentLocation = location
                     // Passa la posizione attuale alla funzione che si occupa di generare la Heatmap
                     if (startBoolean) wifiHeatMap(location)
@@ -328,7 +330,7 @@ class MainActivity :
                 alert.setMessage(R.string.alert_dialog_message)
                         .setTitle(R.string.alert_dialog_title)
                 alert.setPositiveButton(R.string.alert_dialog_positive, DialogInterface.OnClickListener {
-                    dialog, which ->
+                    _, _ ->
                     startBoolean = false
                     invalidateOptionsMenu()
                     // Svuota la lista
@@ -337,7 +339,7 @@ class MainActivity :
                     wifiProvider = null
                 })
                 alert.setNegativeButton(R.string.alert_dialog_negative, DialogInterface.OnClickListener {
-                    dialog, which ->  //niente
+                    _, _ ->  //niente
                 })
                 val dialog = alert.create()
                 dialog.show()
@@ -375,7 +377,10 @@ class MainActivity :
     }
 
     private fun wifiHeatMap(location: Location) {
+        val wifiRadius = 30
+        val wifiOpacity = 0.7
         if (wifiBoolean) {
+            wifiOverlay?.isVisible = true
             val wifiLatLng = getWifi(location)
             // Aggiunge la posizione attuale alla lista
             wifiList.add(wifiLatLng)
@@ -384,34 +389,40 @@ class MainActivity :
                 // Inizializza il wifiProvider, passandogli i dati presenti in lista (nessuno al momento della creazione)
                 wifiProvider = HeatmapTileProvider.Builder()
                         .weightedData(wifiList)
-                        .radius(20)
+                        .radius(wifiRadius)
                         .gradient(wifiGradient())
+                        .opacity(wifiOpacity)
                         .build()
                 // Aggiunge l'overlay alla mappa, utilizzando il wifiProvider
-                wifiOverlay = map?.addTileOverlay(TileOverlayOptions().tileProvider(wifiProvider))
+                wifiOverlay = map?.addTileOverlay(TileOverlayOptions().fadeIn(false).tileProvider(wifiProvider))
             } else {
-                // Modifica i dati del wifiProvider
-                wifiProvider?.setWeightedData(wifiList)
-                // Forza un ricaricamento dei punti sulla mappa
-                wifiOverlay?.clearTileCache()
+                if (currentLocation != previousLocation) {
+                    // Modifica i dati del wifiProvider
+                    wifiProvider?.setWeightedData(wifiList)
+                    // Forza un ricaricamento dei punti sulla mappa
+                    wifiOverlay?.clearTileCache()
+                }
             }
         } else {
-            wifiOverlay?.remove()
+            wifiOverlay?.isVisible = false
         }
     }
 
     private fun wifiGradient() : Gradient {
         val colors = intArrayOf(
+                Color.CYAN,
                 Color.GREEN,
                 Color.YELLOW,
                 Color.RED
         )
         val startPoints = floatArrayOf(
-                0.30f,
-                0.60f,
-                0.90f
+                0.25f,
+                0.5f,
+                0.75f,
+                1f
         )
-        return Gradient(colors, startPoints)
+        val colorMapSize = 1000
+        return Gradient(colors, startPoints, colorMapSize)
     }
 
     private fun getWifi(location: Location) : WeightedLatLng {
