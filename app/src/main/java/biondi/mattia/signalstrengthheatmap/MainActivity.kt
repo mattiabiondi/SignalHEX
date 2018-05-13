@@ -1,8 +1,11 @@
 package biondi.mattia.signalstrengthheatmap
 
+import android.content.Context
 import android.content.DialogInterface
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Location
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.v4.app.ActivityCompat
@@ -19,7 +22,9 @@ import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.TileOverlay
 import com.google.android.gms.maps.model.TileOverlayOptions
+import com.google.maps.android.heatmaps.Gradient
 import com.google.maps.android.heatmaps.HeatmapTileProvider
+import com.google.maps.android.heatmaps.WeightedLatLng
 import kotlinx.android.synthetic.main.main_layout.*
 import kotlinx.android.synthetic.main.app_bar_layout.*
 import kotlinx.android.synthetic.main.content_layout.*
@@ -37,8 +42,9 @@ class MainActivity :
 
     // Codice di richiesta
     private val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
+    private val PERMISSIONS_REQUEST_ACCESS_WIFI_STATE = 2
 
-    // Autorizzazione ad utilizzare la posizione
+    // Autorizzazioni
     private var locationPermission = false
 
     // Posizione attuale
@@ -48,8 +54,8 @@ class MainActivity :
     private var locationRequest: LocationRequest? = null
 
     // Intervalli di tempo in cui si aggiorna la posizione
-    private val INTERVAL = 50L
-    private val FASTEST_INTERVAL = 50L
+    private val INTERVAL = 1000L
+    private val FASTEST_INTERVAL = 1000L
 
     // Comandi da eseguire dopo aver ottenuto la posizione
     private lateinit var locationCallback: LocationCallback
@@ -86,11 +92,11 @@ class MainActivity :
     private var wifiItem: MenuItem? = null
 
     // Lista delle coordinate ottenute dal dispositivo
-    private var list = mutableListOf<LatLng>()
+    private var wifiList = mutableListOf<WeightedLatLng>()
     // Istanza del HeatmapTileProvider
-    private var provider: HeatmapTileProvider? = null
-    // Istanza del tile overlay
-    private var overlay: TileOverlay? = null
+    private var wifiProvider: HeatmapTileProvider? = null
+    // Istanza del tile wifiOverlay
+    private var wifiOverlay: TileOverlay? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -230,10 +236,8 @@ class MainActivity :
                 for (location in locationResult.locations) {
                     // Aggiorna la posizione attuale
                     currentLocation = location
-                    textLat.text = "Latitude: " + location.latitude.toString()
-                    textLon.text = "Longitude: " + location.longitude.toString()
                     // Passa la posizione attuale alla funzione che si occupa di generare la Heatmap
-                    addHeatMap(location)
+                    if (startBoolean) wifiHeatMap(location)
                 }
             }
         }
@@ -328,15 +332,9 @@ class MainActivity :
                     startBoolean = false
                     invalidateOptionsMenu()
                     // Svuota la lista
-                    list.clear()
-                    // Aggiungo l'ultima posizione nota perchè non si può passare una lista vuota a setData
-                    list.add(LatLng(currentLocation?.latitude as Double, currentLocation?.longitude as Double))
-                    if (provider != null) {
-                        // Modifica i dati del provider
-                        provider?.setData(list)
-                        // Forza un ricaricamento dei punti sulla mappa
-                        overlay?.clearTileCache()
-                    }
+                    wifiList.clear()
+                    wifiOverlay?.remove()
+                    wifiProvider = null
                 })
                 alert.setNegativeButton(R.string.alert_dialog_negative, DialogInterface.OnClickListener {
                     dialog, which ->  //niente
@@ -376,24 +374,58 @@ class MainActivity :
         return true
     }
 
-    private fun addHeatMap(location: Location) {
-        // Se il pulsante è in "pausa" non salva nessuna coordinata
-        if(startBoolean) {
-            // Aggiunge la posizione attuale alla lista di coordinate
-            list.add(LatLng(location.latitude, location.longitude))
-
-            // Controlla se bisogna inizializzare il provider
-            if (provider == null) {
-                // Inizializza il provider, passandogli i dati presenti in lista (nessuno al momento della creazione)
-                provider = HeatmapTileProvider.Builder().data(list).build()
-                // Aggiunge l'overlay alla mappa, utilizzando il provider
-                overlay = map?.addTileOverlay(TileOverlayOptions().tileProvider(provider))
-            } else { // TODO facendo così mostra l'ultimo punto
-                // Modifica i dati del provider
-                provider?.setData(list)
+    private fun wifiHeatMap(location: Location) {
+        if (wifiBoolean) {
+            val wifiLatLng = getWifi(location)
+            // Aggiunge la posizione attuale alla lista
+            wifiList.add(wifiLatLng)
+            // Controlla se bisogna inizializzare il wifiProvider
+            if (wifiProvider == null) {
+                // Inizializza il wifiProvider, passandogli i dati presenti in lista (nessuno al momento della creazione)
+                wifiProvider = HeatmapTileProvider.Builder()
+                        .weightedData(wifiList)
+                        .radius(20)
+                        .gradient(wifiGradient())
+                        .build()
+                // Aggiunge l'overlay alla mappa, utilizzando il wifiProvider
+                wifiOverlay = map?.addTileOverlay(TileOverlayOptions().tileProvider(wifiProvider))
+            } else {
+                // Modifica i dati del wifiProvider
+                wifiProvider?.setWeightedData(wifiList)
                 // Forza un ricaricamento dei punti sulla mappa
-                overlay?.clearTileCache()
+                wifiOverlay?.clearTileCache()
             }
+        } else {
+            wifiOverlay?.remove()
         }
+    }
+
+    private fun wifiGradient() : Gradient {
+        val colors = intArrayOf(
+                Color.GREEN,
+                Color.YELLOW,
+                Color.RED
+        )
+        val startPoints = floatArrayOf(
+                0.30f,
+                0.60f,
+                0.90f
+        )
+        return Gradient(colors, startPoints)
+    }
+
+    private fun getWifi(location: Location) : WeightedLatLng {
+        var intensity = WeightedLatLng.DEFAULT_INTENSITY
+        val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        if (wifiManager.isWifiEnabled) {
+            val wifiInfo = wifiManager.connectionInfo
+            if (wifiInfo != null) {
+                intensity = WifiManager.calculateSignalLevel(wifiInfo.rssi, 100).toDouble()
+                textWifi.text = intensity.toString()
+            }
+        } else {
+            Toast.makeText(this, "Turn on Wi-Fi", Toast.LENGTH_SHORT).show()
+        }
+        return WeightedLatLng(LatLng(location.latitude, location.longitude), intensity)
     }
 }
