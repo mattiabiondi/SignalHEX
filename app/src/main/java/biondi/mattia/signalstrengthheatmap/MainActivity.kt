@@ -91,11 +91,18 @@ class MainActivity :
     private var wifiItem: MenuItem? = null
 
     // Lista delle coordinate ottenute dal dispositivo
-    private var wifiList = mutableListOf<WeightedLatLng>()
+    private var wifiList = arrayOf(
+            mutableListOf<WeightedLatLng>(),
+            mutableListOf(),
+            mutableListOf(),
+            mutableListOf(),
+            mutableListOf(),
+            mutableListOf())
+
     // Istanza del HeatmapTileProvider
-    private var wifiProvider: HeatmapTileProvider? = null
+    private var wifiProvider = arrayOfNulls<HeatmapTileProvider>(6)
     // Istanza del tile wifiOverlay
-    private var wifiOverlay: TileOverlay? = null
+    private var wifiOverlay = arrayOfNulls<TileOverlay>(6)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -323,7 +330,7 @@ class MainActivity :
                 invalidateOptionsMenu()
             }
             R.id.refresh -> {
-                val alert = AlertDialog.Builder(this)
+             /*   val alert = AlertDialog.Builder(this)
                 alert.setMessage(R.string.alert_dialog_message)
                         .setTitle(R.string.alert_dialog_title)
                 alert.setPositiveButton(R.string.alert_dialog_positive, DialogInterface.OnClickListener {
@@ -339,7 +346,7 @@ class MainActivity :
                     _, _ ->  //niente
                 })
                 val dialog = alert.create()
-                dialog.show()
+                dialog.show()*/
             }
         }
         return true
@@ -374,35 +381,36 @@ class MainActivity :
     }
 
     private fun wifiHeatMap(location: Location) {
-        val wifiRadius = 40
+        val wifiRadius = 50
         lateinit var wifiGradient: Gradient
         val wifiOpacity = 0.7
+        val wifiLatLng = getWifiWeight(location)
+        val intensity = wifiLatLng.intensity.toInt()
         if (wifiBoolean) {
-            wifiOverlay?.isVisible = true
-            val wifiLatLng = getWifiWeight(location)
-            wifiGradient = getGradient(wifiLatLng.intensity)
+            wifiGradient = getGradient(intensity.toDouble())
             // Aggiunge la posizione attuale alla lista
-            wifiList.add(wifiLatLng)
+            wifiList[intensity].add(wifiLatLng)
+            wifiOverlay[intensity]?.isVisible = true
             // Controlla se bisogna inizializzare il wifiProvider
-            if (wifiProvider == null) {
+            if (wifiProvider[intensity] == null) {
                 // Inizializza il wifiProvider, passandogli i dati presenti in lista (nessuno al momento della creazione)
-                wifiProvider = HeatmapTileProvider.Builder()
-                        .weightedData(wifiList)
+                wifiProvider[intensity] = HeatmapTileProvider.Builder()
+                        .weightedData(wifiList[intensity])
                         .radius(wifiRadius)
                         .gradient(wifiGradient)
                         .opacity(wifiOpacity)
                         .build()
                 // Aggiunge l'overlay alla mappa, utilizzando il wifiProvider
-                wifiOverlay = map?.addTileOverlay(TileOverlayOptions().fadeIn(false).tileProvider(wifiProvider))
+                wifiOverlay[intensity] = map?.addTileOverlay(TileOverlayOptions().fadeIn(false).tileProvider(wifiProvider[intensity]))
             } else {
                 // Modifica i dati del wifiProvider
-                wifiProvider?.setWeightedData(wifiList)
-                wifiProvider?.setGradient(wifiGradient)
+                wifiProvider[intensity]?.setWeightedData(wifiList[intensity])
+                wifiProvider[intensity]?.setGradient(wifiGradient)
                 // Forza un ricaricamento dei punti sulla mappa
-                wifiOverlay?.clearTileCache()
+                wifiOverlay[intensity]?.clearTileCache()
             }
         } else {
-            wifiOverlay?.isVisible = false
+            wifiOverlay[intensity]?.isVisible = false
         }
     }
 
@@ -426,7 +434,7 @@ class MainActivity :
     }
 
     private fun getWifiWeight(location: Location) : WeightedLatLng {
-        var intensity = 0.0
+        var intensity = WeightedLatLng.DEFAULT_INTENSITY
         val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         if (wifiManager.isWifiEnabled) {
             val wifiInfo = wifiManager.connectionInfo
