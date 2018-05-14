@@ -53,8 +53,8 @@ class MainActivity :
     private var locationRequest: LocationRequest? = null
 
     // Intervalli di tempo in cui si aggiorna la posizione
-    private val INTERVAL = 1000L
-    private val FASTEST_INTERVAL = 1000L
+    private val INTERVAL = 500L
+    private val FASTEST_INTERVAL = 500L
 
     // Comandi da eseguire dopo aver ottenuto la posizione
     private lateinit var locationCallback: LocationCallback
@@ -383,7 +383,7 @@ class MainActivity :
     private fun wifiHeatMap(location: Location) {
         val wifiRadius = 50
         lateinit var wifiGradient: Gradient
-        val wifiOpacity = 0.7
+        val wifiOpacity = 0.8
         val wifiLatLng = getWifiWeight(location)
         val intensity = wifiLatLng.intensity.toInt()
         if (wifiBoolean) {
