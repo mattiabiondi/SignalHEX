@@ -95,7 +95,7 @@ class MainActivity :
     private var wifiList = mutableListOf<WeightedLatLng>()
 
     // Istanza del HeatmapTileProvider
-    private var wifiProvider: HeatmapTileProvider? = null
+    private var wifiProvider: MyHeatmapTileProvider? = null
 
     // Istanza del tile wifiOverlay
     private var wifiOverlay: TileOverlay? = null
@@ -399,7 +399,7 @@ class MainActivity :
             // Controlla se bisogna inizializzare il wifiProvider
             if (wifiProvider == null) {
                 // Inizializza il wifiProvider, passandogli i dati presenti in lista (nessuno al momento della creazione)
-                wifiProvider = HeatmapTileProvider.Builder()
+                wifiProvider = MyHeatmapTileProvider.Builder()
                         .weightedData(wifiList)
                         .radius(wifiRadius)
                         .gradient(wifiGradient)
@@ -416,20 +416,18 @@ class MainActivity :
         }
     }
 
-    private fun getGradient() : Gradient {
+    private fun getGradient() : MyGradient {
         // I colori da utilizzare nella mappa
         val colors = intArrayOf(
                 Color.GREEN,
-                Color.rgb(173,255,47), // Lime Green
                 Color.YELLOW,
-                Color.rgb(255,140,0), // Orange
                 Color.RED)
         // Il valore di inizio di ogni colore
         // Avendo definito 4 colori specifici non c'è nessuna vera transizione tra loro
-        val startPoints = floatArrayOf(0.20f, 0.40f, 0.60f, 0.80f, 1.0f)
+        val startPoints = floatArrayOf(0.30f, 0.60f, 1f)
         // La "risoluzione" del punto che viene disegnato
         val colorMapSize = 1000
-        return Gradient(colors, startPoints, colorMapSize)
+        return MyGradient(colors, startPoints, colorMapSize)
     }
 
     private fun getWifiWeight(location: Location) : WeightedLatLng {
@@ -442,7 +440,7 @@ class MainActivity :
                 textWifi.text = intensity.toString()
             }
         }
-        return WeightedLatLng(LatLng(location.latitude, location.longitude), intensity)
+        return WeightedLatLng(LatLng(location.latitude, location.longitude), 1.0)
     }
 
     private fun checkLocation() {
