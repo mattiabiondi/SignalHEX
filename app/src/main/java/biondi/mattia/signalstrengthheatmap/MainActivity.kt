@@ -1,7 +1,6 @@
 package biondi.mattia.signalstrengthheatmap
 
 import android.content.Context
-import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
@@ -22,8 +21,6 @@ import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.TileOverlay
 import com.google.android.gms.maps.model.TileOverlayOptions
-import com.google.maps.android.heatmaps.Gradient
-import com.google.maps.android.heatmaps.HeatmapTileProvider
 import com.google.maps.android.heatmaps.WeightedLatLng
 import kotlinx.android.synthetic.main.main_layout.*
 import kotlinx.android.synthetic.main.app_bar_layout.*
@@ -95,20 +92,12 @@ class MainActivity :
     private var wifiList = mutableListOf<WeightedLatLng>()
 
     // Istanza del HeatmapTileProvider
-    private var wifiProvider: MyHeatmapTileProvider? = null
+    private var wifiProvider: WeightedHeatmapTileProvider? = null
 
     // Istanza del tile wifiOverlay
     private var wifiOverlay: TileOverlay? = null
 
-    /*private var wifiList = arrayOf(
-            mutableListOf<WeightedLatLng>(),
-            mutableListOf(),
-            mutableListOf(),
-            mutableListOf(),
-            mutableListOf(),
-            mutableListOf())
-    private var wifiProvider = arrayOfNulls<HeatmapTileProvider>(6)
-    private var wifiOverlay = arrayOfNulls<TileOverlay>(6)*/
+    private val WIFI_PRECISION = 10
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -337,10 +326,10 @@ class MainActivity :
                 invalidateOptionsMenu()
             }
             R.id.refresh -> {
-             /*   val alert = AlertDialog.Builder(this)
+                val alert = AlertDialog.Builder(this)
                 alert.setMessage(R.string.alert_dialog_message)
                         .setTitle(R.string.alert_dialog_title)
-                alert.setPositiveButton(R.string.alert_dialog_positive, DialogInterface.OnClickListener {
+                alert.setPositiveButton(R.string.alert_dialog_positive, {
                     _, _ ->
                     startBoolean = false
                     invalidateOptionsMenu()
@@ -349,11 +338,11 @@ class MainActivity :
                     wifiOverlay?.remove()
                     wifiProvider = null
                 })
-                alert.setNegativeButton(R.string.alert_dialog_negative, DialogInterface.OnClickListener {
+                alert.setNegativeButton(R.string.alert_dialog_negative, {
                     _, _ ->  //niente
                 })
                 val dialog = alert.create()
-                dialog.show()*/
+                dialog.show()
             }
         }
         return true
@@ -390,8 +379,8 @@ class MainActivity :
 
     private fun wifiHeatMap(location: Location) {
         if (wifiBoolean) {
-            val wifiRadius = 50
-            val wifiOpacity = 0.8
+            val wifiRadius = 25
+            val wifiOpacity = 0.7
             val wifiLatLng = getWifiWeight(location)
             val wifiGradient = getGradient()
             // Aggiunge la posizione attuale alla lista
@@ -399,12 +388,7 @@ class MainActivity :
             // Controlla se bisogna inizializzare il wifiProvider
             if (wifiProvider == null) {
                 // Inizializza il wifiProvider, passandogli i dati presenti in lista (nessuno al momento della creazione)
-                wifiProvider = MyHeatmapTileProvider.Builder()
-                        .weightedData(wifiList)
-                        .radius(wifiRadius)
-                        .gradient(wifiGradient)
-                        .opacity(wifiOpacity)
-                        .build()
+                wifiProvider = WeightedHeatmapTileProvider(wifiList, wifiRadius, wifiGradient, wifiOpacity, WIFI_PRECISION)
                 // Aggiunge l'overlay alla mappa, utilizzando il wifiProvider
                 wifiOverlay = map?.addTileOverlay(TileOverlayOptions().fadeIn(false).tileProvider(wifiProvider))
             } else {
@@ -416,18 +400,18 @@ class MainActivity :
         }
     }
 
-    private fun getGradient() : MyGradient {
+    private fun getGradient() : biondi.mattia.signalstrengthheatmap.Gradient {
         // I colori da utilizzare nella mappa
         val colors = intArrayOf(
                 Color.GREEN,
-                Color.YELLOW,
+                Color.BLUE,
                 Color.RED)
         // Il valore di inizio di ogni colore
         // Avendo definito 4 colori specifici non c'è nessuna vera transizione tra loro
-        val startPoints = floatArrayOf(0.30f, 0.60f, 1f)
+        val startPoints = floatArrayOf(0.3f, 0.5f, 1f)
         // La "risoluzione" del punto che viene disegnato
         val colorMapSize = 1000
-        return MyGradient(colors, startPoints, colorMapSize)
+        return biondi.mattia.signalstrengthheatmap.Gradient(colors, startPoints, colorMapSize)
     }
 
     private fun getWifiWeight(location: Location) : WeightedLatLng {
@@ -436,11 +420,11 @@ class MainActivity :
         if (wifiManager.isWifiEnabled) {
             val wifiInfo = wifiManager.connectionInfo
             if (wifiInfo != null) {
-                intensity = WifiManager.calculateSignalLevel(wifiInfo.rssi, 5).toDouble()
+                intensity = WifiManager.calculateSignalLevel(wifiInfo.rssi, WIFI_PRECISION).toDouble()
                 textWifi.text = intensity.toString()
             }
         }
-        return WeightedLatLng(LatLng(location.latitude, location.longitude), 1.0)
+        return WeightedLatLng(LatLng(location.latitude, location.longitude), intensity)
     }
 
     private fun checkLocation() {

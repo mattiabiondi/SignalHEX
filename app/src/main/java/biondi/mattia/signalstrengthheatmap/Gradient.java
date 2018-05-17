@@ -3,17 +3,17 @@ package biondi.mattia.signalstrengthheatmap;
 import android.graphics.Color;
 import java.util.HashMap;
 
-public class MyGradient {
+public class Gradient {
     private static final int DEFAULT_COLOR_MAP_SIZE = 1000;
     public final int mColorMapSize;
     public int[] mColors;
     public float[] mStartPoints;
 
-    public MyGradient(int[] colors, float[] startPoints) {
-        this(colors, startPoints, 1000);
+    public Gradient(int[] colors, float[] startPoints) {
+        this(colors, startPoints, DEFAULT_COLOR_MAP_SIZE);
     }
 
-    public MyGradient(int[] colors, float[] startPoints, int colorMapSize) {
+    public Gradient(int[] colors, float[] startPoints, int colorMapSize) {
         if (colors.length != startPoints.length) {
             throw new IllegalArgumentException("colors and startPoints should be same length");
         } else if (colors.length == 0) {
@@ -33,36 +33,36 @@ public class MyGradient {
         }
     }
 
-    private HashMap<Integer, MyGradient.ColorInterval> generateColorIntervals() {
-        HashMap<Integer, MyGradient.ColorInterval> colorIntervals = new HashMap();
+    private HashMap<Integer, Gradient.ColorInterval> generateColorIntervals() {
+        HashMap<Integer, Gradient.ColorInterval> colorIntervals = new HashMap();
         int i;
         if (this.mStartPoints[0] != 0.0F) {
             i = Color.argb(0, Color.red(this.mColors[0]), Color.green(this.mColors[0]), Color.blue(this.mColors[0]));
-            colorIntervals.put(0, new MyGradient.ColorInterval(i, this.mColors[0], (float)this.mColorMapSize * this.mStartPoints[0]));
+            colorIntervals.put(0, new Gradient.ColorInterval(i, this.mColors[0], (float)this.mColorMapSize * this.mStartPoints[0]));
         }
 
         for(i = 1; i < this.mColors.length; ++i) {
-            colorIntervals.put((int)((float)this.mColorMapSize * this.mStartPoints[i - 1]), new MyGradient.ColorInterval(this.mColors[i - 1], this.mColors[i], (float)this.mColorMapSize * (this.mStartPoints[i] - this.mStartPoints[i - 1])));
+            colorIntervals.put((int)((float)this.mColorMapSize * this.mStartPoints[i - 1]), new Gradient.ColorInterval(this.mColors[i - 1], this.mColors[i], (float)this.mColorMapSize * (this.mStartPoints[i] - this.mStartPoints[i - 1])));
         }
 
         if (this.mStartPoints[this.mStartPoints.length - 1] != 1.0F) {
             i = this.mStartPoints.length - 1;
-            colorIntervals.put((int)((float)this.mColorMapSize * this.mStartPoints[i]), new MyGradient.ColorInterval(this.mColors[i], this.mColors[i], (float)this.mColorMapSize * (1.0F - this.mStartPoints[i])));
+            colorIntervals.put((int)((float)this.mColorMapSize * this.mStartPoints[i]), new Gradient.ColorInterval(this.mColors[i], this.mColors[i], (float)this.mColorMapSize * (1.0F - this.mStartPoints[i])));
         }
 
         return colorIntervals;
     }
 
     int[] generateColorMap(double opacity) {
-        HashMap<Integer, MyGradient.ColorInterval> colorIntervals = this.generateColorIntervals();
+        HashMap<Integer, Gradient.ColorInterval> colorIntervals = this.generateColorIntervals();
         int[] colorMap = new int[this.mColorMapSize];
-        MyGradient.ColorInterval interval = (MyGradient.ColorInterval)colorIntervals.get(0);
+        Gradient.ColorInterval interval = (Gradient.ColorInterval)colorIntervals.get(0);
         int start = 0;
 
         int i;
         for(i = 0; i < this.mColorMapSize; ++i) {
             if (colorIntervals.containsKey(i)) {
-                interval = (MyGradient.ColorInterval)colorIntervals.get(i);
+                interval = (Gradient.ColorInterval)colorIntervals.get(i);
                 start = i;
             }
 
