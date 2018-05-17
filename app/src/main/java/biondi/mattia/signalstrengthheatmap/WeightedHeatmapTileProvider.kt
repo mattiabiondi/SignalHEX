@@ -9,7 +9,7 @@ import com.google.maps.android.heatmaps.WeightedLatLng
 import com.google.maps.android.quadtree.PointQuadTree
 import java.io.ByteArrayOutputStream
 
-class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>, private var radius: Int, private var gradient: Gradient, private var opacity: Double, private var maxIntensity: Int) : TileProvider {
+class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>) : TileProvider {
     private val DEFAULT_RADIUS = 20
     private val DEFAULT_OPACITY = 0.7
     private val DEFAULT_GRADIENT_COLORS = intArrayOf(Color.GREEN, Color.RED)
@@ -23,6 +23,10 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>, 
     private val MAX_ZOOM_LEVEL = 22
     private val MIN_RADIUS = 10
     private val MAX_RADIUS = 50
+    private var radius: Int? = null
+    private var gradient: Gradient? = null
+    private var opacity: Double? = null
+    private var maxIntensity: Int? = null
     private var tree: PointQuadTree<WeightedLatLng>? = null
     private var bounds: Bounds? = null
     private var colorMap: IntArray? = null
@@ -49,9 +53,9 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>, 
 
     override fun getTile(x: Int, y: Int, zoom: Int): Tile {
         val tileWidth = 1.0 / Math.pow(2.0, zoom.toDouble())
-        val padding = tileWidth * radius.toDouble() / TILE_DIM
+        val padding = tileWidth * radius!!.toDouble() / TILE_DIM
         val tileWidthPadded = tileWidth + 2.0 * padding
-        val bucketWidth = tileWidthPadded / (TILE_DIM + radius.toDouble() *2)
+        val bucketWidth = tileWidthPadded / (TILE_DIM + radius!!.toDouble() *2)
         val minX = x * tileWidth - padding
         val maxX = (x + 1) * tileWidth + padding
         val minY = y * tileWidth - padding
@@ -79,7 +83,7 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>, 
             if (points!!.isEmpty()) {
                 return TileProvider.NO_TILE
             } else {
-                val intensity = Array(TILE_DIM + radius * 2) { DoubleArray(TILE_DIM + radius * 2) }
+                val intensity = Array(TILE_DIM + radius!! * 2) { DoubleArray(TILE_DIM + radius!! * 2) }
                 var weightedLatLng: WeightedLatLng
                 var point: com.google.maps.android.geometry.Point
                 var bucketX: Int
@@ -112,13 +116,13 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>, 
 
     fun setGradient(gradient: Gradient) {
         this.gradient = gradient
-        colorMap = gradient.generateColorMap(opacity)
+        colorMap = gradient.generateColorMap(opacity!!)
     }
 
     fun setRadius(radius: Int) {
         this.radius = radius
-        if (this.radius in MIN_RADIUS..MAX_RADIUS) {
-            kernel = generateKernel(this.radius, this.radius / 3.0)
+        if (this.radius!! in MIN_RADIUS..MAX_RADIUS) {
+            kernel = generateKernel(this.radius!!, this.radius!! / 3.0)
             maxIntensityArray = getMaxIntensities()
         } else {
             throw IllegalArgumentException("Radius not within bounds.")
@@ -127,8 +131,8 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>, 
 
     fun setOpacity(opacity: Double) {
         this.opacity = opacity
-        if (this.opacity in 0.0..WORLD_WIDTH) {
-            setGradient(gradient)
+        if (this.opacity!! in 0.0..WORLD_WIDTH) {
+            setGradient(gradient!!)
         } else {
             throw IllegalArgumentException("Opacity must be in range [0, 1]")
         }
@@ -286,7 +290,12 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>, 
     }
 
     init {
-        kernel = generateKernel(radius, radius.toDouble() / 3.0)
+        radius = DEFAULT_RADIUS
+        gradient = DEFAULT_GRADIENT
+        opacity = DEFAULT_OPACITY
+        maxIntensity = DEFAULT_MAX_INTENSITY
+        kernel = generateKernel(radius!!, radius!!.toDouble() / 3.0)
+        setGradient(gradient!!)
         setWeightedData(data)
     }
 }

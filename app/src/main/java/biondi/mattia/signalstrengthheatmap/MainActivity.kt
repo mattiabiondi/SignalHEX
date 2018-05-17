@@ -379,8 +379,8 @@ class MainActivity :
 
     private fun wifiHeatMap(location: Location) {
         if (wifiBoolean) {
-            val wifiRadius = 25
-            val wifiOpacity = 0.7
+            val wifiRadius = 30
+            val wifiOpacity = 1.0
             val wifiLatLng = getWifiWeight(location)
             val wifiGradient = getGradient()
             // Aggiunge la posizione attuale alla lista
@@ -388,7 +388,11 @@ class MainActivity :
             // Controlla se bisogna inizializzare il wifiProvider
             if (wifiProvider == null) {
                 // Inizializza il wifiProvider, passandogli i dati presenti in lista (nessuno al momento della creazione)
-                wifiProvider = WeightedHeatmapTileProvider(wifiList, wifiRadius, wifiGradient, wifiOpacity, WIFI_PRECISION)
+                wifiProvider = WeightedHeatmapTileProvider(wifiList)
+                wifiProvider?.setRadius(wifiRadius)
+                wifiProvider?.setGradient(wifiGradient)
+                wifiProvider?.setOpacity(wifiOpacity)
+                wifiProvider?.setMaxIntensity(WIFI_PRECISION)
                 // Aggiunge l'overlay alla mappa, utilizzando il wifiProvider
                 wifiOverlay = map?.addTileOverlay(TileOverlayOptions().fadeIn(false).tileProvider(wifiProvider))
             } else {
@@ -404,11 +408,11 @@ class MainActivity :
         // I colori da utilizzare nella mappa
         val colors = intArrayOf(
                 Color.GREEN,
-                Color.BLUE,
+                Color.YELLOW,
                 Color.RED)
         // Il valore di inizio di ogni colore
         // Avendo definito 4 colori specifici non c'è nessuna vera transizione tra loro
-        val startPoints = floatArrayOf(0.3f, 0.5f, 1f)
+        val startPoints = floatArrayOf(0.33F, 0.66F, 1.0F)
         // La "risoluzione" del punto che viene disegnato
         val colorMapSize = 1000
         return biondi.mattia.signalstrengthheatmap.Gradient(colors, startPoints, colorMapSize)
