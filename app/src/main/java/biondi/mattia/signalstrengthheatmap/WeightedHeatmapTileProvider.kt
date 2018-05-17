@@ -18,9 +18,6 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>) 
     private var DEFAULT_MAX_INTENSITY = 9
     private val WORLD_WIDTH = 1.0
     private val TILE_DIM = 512
-    private val DEFAULT_MIN_ZOOM = 5
-    private val DEFAULT_MAX_ZOOM = 11
-    private val MAX_ZOOM_LEVEL = 22
     private val MIN_RADIUS = 10
     private val MAX_RADIUS = 50
     private var radius: Int? = null
@@ -31,7 +28,6 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>) 
     private var bounds: Bounds? = null
     private var colorMap: IntArray? = null
     private var kernel: DoubleArray? = null
-    private var maxIntensityArray: DoubleArray? = null
 
     fun setWeightedData(data: Collection<WeightedLatLng>) {
         this.data = data
@@ -46,8 +42,6 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>) 
                 val weightedLatLng = iterator.next()
                 tree?.add(weightedLatLng)
             }
-
-            maxIntensityArray = getMaxIntensities()
         }
     }
 
@@ -95,7 +89,7 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>) 
                     point = weightedLatLng.point
                     bucketX = ((point.x - minX) / bucketWidth).toInt()
                     bucketY = ((point.y - minY) / bucketWidth).toInt()
-                    intensity[bucketX][bucketY] = weightedLatLng.intensity
+                    intensity[bucketX][bucketY] = weightedLatLng.intensity //TODO
                 }
 
                 val iterator2 = wrappedPoints.iterator()
@@ -104,11 +98,11 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>) 
                     point = weightedLatLng.point
                     bucketX = ((point.x + xOffset - minX) / bucketWidth).toInt()
                     bucketY = ((point.y - minY) / bucketWidth).toInt()
-                    intensity[bucketX][bucketY] = weightedLatLng.intensity
+                    intensity[bucketX][bucketY] = weightedLatLng.intensity //TODO
                 }
 
                 val convolved = convolve(intensity, kernel!!)
-                val bitmap = colorize(convolved, colorMap!!, maxIntensityArray!![zoom])
+                val bitmap = colorize(convolved, colorMap!!, maxIntensity!!.toDouble())
                 return convertBitmap(bitmap)
             }
         }
@@ -123,7 +117,6 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>) 
         this.radius = radius
         if (this.radius!! in MIN_RADIUS..MAX_RADIUS) {
             kernel = generateKernel(this.radius!!, this.radius!! / 3.0)
-            maxIntensityArray = getMaxIntensities()
         } else {
             throw IllegalArgumentException("Radius not within bounds.")
         }
@@ -140,31 +133,6 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>) 
 
     fun setMaxIntensity(intensity: Int) {
         this.maxIntensity = intensity - 1
-    }
-
-    private fun getMaxIntensities(): DoubleArray {
-        val maxIntensityArray = DoubleArray(MAX_ZOOM_LEVEL)
-
-        var i = DEFAULT_MIN_ZOOM
-        while (i < DEFAULT_MAX_ZOOM) {
-            maxIntensityArray[i] = 4.0
-            if (i == DEFAULT_MIN_ZOOM) {
-                var j = 0
-                while (j < i) {
-                    maxIntensityArray[j] = maxIntensityArray[i]
-                    ++j
-                }
-            }
-            ++i
-        }
-
-        i = DEFAULT_MAX_ZOOM
-        while (i < MAX_ZOOM_LEVEL) {
-            maxIntensityArray[i] = maxIntensityArray[MIN_RADIUS]
-            ++i
-        }
-
-        return maxIntensityArray
     }
 
     private fun convertBitmap(bitmap: Bitmap): Tile {
@@ -262,7 +230,7 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>) 
     }
 
     private fun colorize(grid: Array<DoubleArray>, colorMap: IntArray, max: Double): Bitmap {
-        val maxColor = colorMap[colorMap.size -1]
+        val maxColor = colorMap[colorMap.size - 1]
         val colorMapScaling = (colorMap.size - 1).toDouble() / max
         val dim = grid.size
         val colors = IntArray(dim * dim)
