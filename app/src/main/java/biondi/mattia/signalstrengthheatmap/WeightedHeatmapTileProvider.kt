@@ -89,7 +89,7 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>) 
                     point = weightedLatLng.point
                     bucketX = ((point.x - minX) / bucketWidth).toInt()
                     bucketY = ((point.y - minY) / bucketWidth).toInt()
-                    intensity[bucketX][bucketY] = weightedLatLng.intensity //TODO
+                    intensity[bucketX][bucketY] = weightedLatLng.intensity //TODO evita la proprietà additiva
                 }
 
                 val iterator2 = wrappedPoints.iterator()
@@ -98,9 +98,10 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>) 
                     point = weightedLatLng.point
                     bucketX = ((point.x + xOffset - minX) / bucketWidth).toInt()
                     bucketY = ((point.y - minY) / bucketWidth).toInt()
-                    intensity[bucketX][bucketY] = weightedLatLng.intensity //TODO
+                    intensity[bucketX][bucketY] = weightedLatLng.intensity //TODO evita la proprietà additiva
                 }
 
+                // La griglia con le intensità per quella zona viene passato a convolve che la adatta in base alla dimensione del raggio
                 val convolved = convolve(intensity, kernel!!)
                 val bitmap = colorize(convolved, colorMap!!, maxIntensity!!.toDouble())
                 return convertBitmap(bitmap)
@@ -198,6 +199,7 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>) 
                     initial = if (lowerLimit > x - radius) lowerLimit else x - radius
 
                     for (x2 in initial until xUpperLimit) {
+                        //intermediate[x2][y] += double * kernel[x2 - (x - radius)] //todo
                         intermediate[x2][y] += double * kernel[x2 - (x - radius)]
                     }
                 }
@@ -218,7 +220,9 @@ class WeightedHeatmapTileProvider(private var data: Collection<WeightedLatLng>) 
                     initial = if (lowerLimit > y - radius) lowerLimit else y - radius
 
                     for (y2 in initial until yUpperLimit) {
-                        outputGrid[x - radius][y2 - radius] += double * kernel[y2 - (y - radius)]
+                        //outputGrid[x - radius][y2 - radius] += double * kernel[y2 - (y - radius)] //todo
+                        outputGrid[x - radius][y2 - radius] = double * kernel[y2 - (y - radius)]
+
                     }
                 }
                 ++y

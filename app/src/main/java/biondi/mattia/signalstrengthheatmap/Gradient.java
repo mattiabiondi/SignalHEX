@@ -56,13 +56,13 @@ public class Gradient {
     int[] generateColorMap(double opacity) {
         HashMap<Integer, Gradient.ColorInterval> colorIntervals = this.generateColorIntervals();
         int[] colorMap = new int[this.mColorMapSize];
-        Gradient.ColorInterval interval = (Gradient.ColorInterval)colorIntervals.get(0);
+        Gradient.ColorInterval interval = colorIntervals.get(0);
         int start = 0;
 
         int i;
         for(i = 0; i < this.mColorMapSize; ++i) {
             if (colorIntervals.containsKey(i)) {
-                interval = (Gradient.ColorInterval)colorIntervals.get(i);
+                interval = colorIntervals.get(i);
                 start = i;
             }
 
