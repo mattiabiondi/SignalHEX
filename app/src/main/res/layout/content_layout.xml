@@ -9,110 +9,106 @@
     tools:context=".MainActivity"
     tools:showIn="@layout/app_bar_layout">
 
-    <TextView
-        android:id="@+id/textUMTS"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="71dp"
-        android:layout_marginTop="8dp"
-        android:text="UMTS"
-        app:layout_constraintBottom_toTopOf="@+id/textUMTS1"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/textUMTS1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="0"
-        app:layout_constraintBottom_toTopOf="@+id/main_map"
-        app:layout_constraintEnd_toEndOf="@+id/textUMTS"
-        app:layout_constraintStart_toStartOf="@+id/textUMTS"
-        app:layout_constraintTop_toBottomOf="@+id/textUMTS" />
-
-    <TextView
-        android:id="@+id/textLTE"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="74dp"
-        android:layout_marginStart="71dp"
-        android:layout_marginTop="8dp"
-        android:text="LTE"
-        app:layout_constraintBottom_toTopOf="@+id/textLTE1"
-        app:layout_constraintEnd_toStartOf="@+id/textWifi"
-        app:layout_constraintStart_toEndOf="@+id/textUMTS"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/textLTE1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="0"
-        app:layout_constraintBottom_toTopOf="@+id/main_map"
-        app:layout_constraintEnd_toEndOf="@+id/textLTE"
-        app:layout_constraintStart_toStartOf="@+id/textLTE"
-        app:layout_constraintTop_toBottomOf="@+id/textLTE" />
-
-    <TextView
-        android:id="@+id/textWifi"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="75dp"
-        android:layout_marginTop="8dp"
-        android:text="Wi-Fi"
-        app:layout_constraintBottom_toTopOf="@+id/textWifi1"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/textWifi1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="0"
-        app:layout_constraintBottom_toTopOf="@+id/main_map"
-        app:layout_constraintEnd_toEndOf="@+id/textWifi"
-        app:layout_constraintStart_toStartOf="@+id/textWifi"
-        app:layout_constraintTop_toBottomOf="@+id/textWifi" />
-
-    <fragment
-        android:id="@+id/main_map"
-        class="com.google.android.gms.maps.MapFragment"
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/topFrame"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="24dp"
-        android:layout_marginTop="64dp"
+        android:layout_height="64dp"
+        app:layout_constraintBottom_toTopOf="@+id/middleFrame"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/currentConnectText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/current_connection"
+            app:layout_constraintBottom_toTopOf="@+id/signalStrengthText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/connectionText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/not_available"
+            app:layout_constraintBottom_toBottomOf="@+id/currentConnectText"
+            app:layout_constraintStart_toEndOf="@+id/currentConnectText"
+            app:layout_constraintTop_toTopOf="@+id/currentConnectText" />
+
+        <TextView
+            android:id="@+id/signalStrengthText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="8dp"
+            android:text="@string/signal_strength"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/currentConnectText" />
+
+        <TextView
+            android:id="@+id/intensityText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/not_available"
+            app:layout_constraintBottom_toBottomOf="@+id/signalStrengthText"
+            app:layout_constraintStart_toStartOf="@+id/connectionText"
+            app:layout_constraintTop_toTopOf="@+id/signalStrengthText" />
+    </android.support.constraint.ConstraintLayout>
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/middleFrame"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottomFrame"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topFrame">
+
+        <fragment
+            android:id="@+id/main_map"
+            class="com.google.android.gms.maps.MapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </android.support.constraint.ConstraintLayout>
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/bottomFrame"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/middleFrame">
 
-    <TextView
-        android:id="@+id/textLocation"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:text="Current location:"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/main_map" />
+        <TextView
+            android:id="@+id/currentLocationText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/current_location"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/textLatLng"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:text="0, 0"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textLocation"
-        app:layout_constraintTop_toBottomOf="@+id/main_map" />
+        <TextView
+            android:id="@+id/coordinatesText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/not_available"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/currentLocationText"
+            app:layout_constraintTop_toTopOf="parent" />
+    </android.support.constraint.ConstraintLayout>
 
 
 </android.support.constraint.ConstraintLayout>

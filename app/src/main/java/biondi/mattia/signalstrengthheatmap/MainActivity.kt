@@ -3,6 +3,7 @@ package biondi.mattia.signalstrengthheatmap
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.net.*
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.design.widget.NavigationView
@@ -33,23 +34,29 @@ class MainActivity :
         NavigationView.OnNavigationItemSelectedListener,
         OnMapReadyCallback {
 
-    // Inizializzazione del FusedLocationProvider
+    // Costrutto del FusedLocationProviderClient
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+
+    // Costrutto del Connectivity Manager
+    private var connectivityManager: ConnectivityManager? = null
+    private lateinit var wifiManager: WifiManager
+    private lateinit var telephonyManager: TelephonyManager
 
     // Codice di richiesta
     private val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
-    private val PERMISSIONS_REQUEST_ACCESS_NETWORK_STATE = 2
 
     // Autorizzazioni
     private var locationPermission = false
-    private var networkPermission = false
 
     // Posizione attuale
     private var currentLocation: Location? = null
     private var previousLocation: Location? = null
 
+    private var currentNetwork: String = ""
+
     // Richiesta di posizione
-    private var locationRequest: LocationRequest? = null
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var networkRequest: NetworkRequest
 
     // Intervalli di tempo in cui si aggiorna la posizione
     private val INTERVAL = 1000L
@@ -57,9 +64,11 @@ class MainActivity :
 
     // Comandi da eseguire dopo aver ottenuto la posizione
     private lateinit var locationCallback: LocationCallback
+    private lateinit var networkCallback: ConnectivityManager.NetworkCallback
 
     // Booleana per mettere in pausa le richieste di posizione durante onPause()
     private var requestingLocationUpdates = false
+    private var requestingNetworkUpdates = false
 
     // Posizione di default se non viene concessa l'autorizzazione ad utilizzare la posizione (DISI)
     private val defaultLocation = LatLng(44.497264, 11.356047)
@@ -112,31 +121,40 @@ class MainActivity :
         // Imposta un Listener sulla barra di navigazione
         nav_view.setNavigationItemSelectedListener(this)
 
+        // Inizializzazione del FusedLocationProvider
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         // Recupera il Fragment in cui mostrare la mappa
         // Nota: è necessario il cast a MapFragment in quanto la funzione ritorna un Fragment
         val mapFragment = fragmentManager.findFragmentById(R.id.main_map) as MapFragment
-
         // Acquisisce la mappa e la inizializza quando l'istanza GoogleMap è pronta per essere utilizzata
         mapFragment.getMapAsync(this)
-
-        // Costrutto del FusedLocationProviderClient
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-        // Ottiene i permessi per utilizzare la posizione
-        getLocationPermission()
         // Crea la richiesta di aggiornamenti continui sulla posizione
         createLocationRequest()
         // Crea l'oggetto che si occuperà di eseguire i comandi dopo aver ottenuto la posizione
         createLocationCallback()
+
+        // Inizializzazione del ConnectivityManager
+        connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
+        wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        createNetworkRequest()
+        createNetworkCallback()
+
+
+        // Ottiene i permessi per utilizzare la posizione
+        getLocationPermission()
     }
 
     override fun onResume() {
         super.onResume()
         startLocationUpdates()
+        startNetworkUpdates()
     }
 
     override fun onPause() {
         super.onPause()
         stopLocationUpdates()
+        stopNetworkUpdates()
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
@@ -177,22 +195,6 @@ class MainActivity :
         }
     }
 
-    private fun getWcdmaPermission() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED) {
-            // Permessi non ottenuti
-            // Fornisce una spiegazione all'utente se quest'ultimo nega più volte i permessi per accedere alla posizione
-            if(ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.ACCESS_NETWORK_STATE)) {
-                Toast.makeText(this, "Network permission needed.", Toast.LENGTH_SHORT).show()
-            } else {
-                // Nessuna spiegazione necessaria, possiamo chiedere i permessi
-                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_NETWORK_STATE), PERMISSIONS_REQUEST_ACCESS_NETWORK_STATE)
-            }
-        } else {
-            // Permessi già ottenuti
-            networkPermission = true
-        }
-    }
-
     // Si occupa del risultato delle richieste
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         when(requestCode) {
@@ -205,17 +207,6 @@ class MainActivity :
                 }
                 return
             }
-
-            PERMISSIONS_REQUEST_ACCESS_NETWORK_STATE -> {
-                // Se la richiesta viene cancellata gli array risultanti sono vuoti
-                if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permessi ottenuti
-                } else {
-                    // Permessi negati
-                }
-                return
-            }
-
         }
     }
 
@@ -262,10 +253,62 @@ class MainActivity :
                     // Aggiorna la posizione attuale
                     previousLocation = currentLocation
                     currentLocation = location
-                    textLatLng.text = location.latitude.toString() + ", " + location.longitude.toString()
+                    coordinatesText.text = location.latitude.toString() + ", " + location.longitude.toString()
                     // Passa la posizione attuale alla funzione che si occupa di generare la Heatmap
                     if (startBoolean) checkLocation()
+
+                    // todo non è il posto giusto
+                    connectionText.text = currentNetwork
                 }
+            }
+        }
+    }
+
+    private fun createNetworkRequest() {
+        networkRequest = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .build()
+    }
+
+    private fun createNetworkCallback() {
+
+        // I metodi in questa classe vengono chiamati quando la connessione di rete cambia
+        networkCallback = object : ConnectivityManager.NetworkCallback() {
+
+            // Una rete diventa disponibile
+            override fun onAvailable(network: Network) {
+                Toast.makeText(this@MainActivity, "onAvailable", Toast.LENGTH_LONG).show()
+                networkChanged(network)
+            }
+
+            // Un cambio di capacità può indicare che è cambiato il tipo di connessione
+            override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+                Toast.makeText(this@MainActivity, "onCapabilitiesChanged", Toast.LENGTH_LONG).show()
+                networkChanged(network)
+            }
+
+            // Un cambio di connessione può indicare che è cambiato l'indirizzo IP
+            override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
+                Toast.makeText(this@MainActivity, "onLinkPropertiesChanged", Toast.LENGTH_LONG).show()
+                networkChanged(network)
+            }
+
+            // Indica che perderemo la connessione tra maxMsToLive millisecondi
+            override fun onLosing(network: Network, maxMsToLive: Int) {
+                // TODO
+                Toast.makeText(this@MainActivity, "onLosing", Toast.LENGTH_LONG).show()
+            }
+
+            // Indica che abbiamo perso la rete
+            override fun onLost(network: Network) {
+                // TODO
+                Toast.makeText(this@MainActivity, "onLost", Toast.LENGTH_LONG).show()
+            }
+
+            // Nessuna rete è disponibile
+            override fun onUnavailable() {
+                // TODO
+                Toast.makeText(this@MainActivity, "onUnavailable", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -278,7 +321,7 @@ class MainActivity :
                         locationRequest,
                         locationCallback,
                         null // Looper
-                )
+               )
             }
         } catch (e: SecurityException) {
         }
@@ -288,6 +331,22 @@ class MainActivity :
         if (requestingLocationUpdates) {
             requestingLocationUpdates = false
             fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        }
+    }
+
+    private fun startNetworkUpdates() {
+        if (!requestingNetworkUpdates) {
+            requestingNetworkUpdates = true
+            connectivityManager?.registerNetworkCallback(
+                    networkRequest,
+                    networkCallback)
+        }
+    }
+
+    private fun stopNetworkUpdates() {
+        if (requestingNetworkUpdates) {
+            requestingNetworkUpdates = false
+            connectivityManager?.unregisterNetworkCallback(networkCallback)
         }
     }
 
@@ -378,7 +437,6 @@ class MainActivity :
                 umtsItem = item
                 umtsBoolean = !umtsBoolean
                 umts_switch.isChecked = umtsBoolean
-                getWcdmaPermission()
             }
             R.id.lte_item -> {
                 lteItem = item
@@ -403,8 +461,8 @@ class MainActivity :
     private fun checkLocation() {
         if (currentLocation != previousLocation) { //todo da migliorare
             if (wifiBoolean) {
-                addUmtsLocation(currentLocation!!)
-                addWifiLocation(currentLocation!!)
+                //addUmtsLocation(currentLocation!!)
+                //addWifiLocation(currentLocation!!)
             }
         }
     }
@@ -414,6 +472,7 @@ class MainActivity :
         // Aggiunge la posizione attuale alla lista
         umtsList.add(latLng)
     }
+
     private fun addWifiLocation(location: Location) {
         val latLng = getWifiWeight(location)
         // Aggiunge la posizione attuale alla lista
@@ -429,14 +488,13 @@ class MainActivity :
        // if (!telephonyManager.isDataEnabled) Toast.makeText(this, "Turn on data", Toast.LENGTH_SHORT).show()
 
         try {
-            if (networkPermission) {
                 val cellList = telephonyManager.allCellInfo
                 if (cellList != null && cellList.isNotEmpty()){
                     val cellInfoWcdma = telephonyManager.allCellInfo[0] as CellInfoWcdma //todo android.telephony.CellInfoLte cannot be cast to android.telephony.CellInfoWcdma
                     intensity = cellInfoWcdma.cellSignalStrength.level.toDouble()
-                    textUMTS1.text = (intensity + 1).toInt().toString()
+                    //textUMTS1.text = (intensity + 1).toInt().toString()
                 }
-            }
+
         } catch (e: SecurityException) {
         }
         return WeightedLatLng(LatLng(location.latitude, location.longitude), intensity)
@@ -444,15 +502,28 @@ class MainActivity :
 
     private fun getWifiWeight(location: Location) : WeightedLatLng {
         var intensity = WeightedLatLng.DEFAULT_INTENSITY
-        val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         if (wifiManager.isWifiEnabled) {
             val wifiInfo = wifiManager.connectionInfo
             if (wifiInfo != null) {
                 intensity = WifiManager.calculateSignalLevel(wifiInfo.rssi, PRECISION).toDouble()
-                textWifi1.text = (intensity + 1).toInt().toString()
+                //textWifi1.text = (intensity + 1).toInt().toString()
             }
         }
         return WeightedLatLng(LatLng(location.latitude, location.longitude), intensity)
+    }
+
+    private fun networkChanged(network: Network) {
+        val networkCapabilities = connectivityManager!!.getNetworkCapabilities(network)
+        val networkInfo = connectivityManager!!.getNetworkInfo(network)
+        if (networkInfo.isConnected) {
+            if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                currentNetwork = wifiManager.connectionInfo.ssid //todo togli le virgolette dal nome
+                //Toast.makeText(this, wifiManager.connectionInfo.ssid, Toast.LENGTH_LONG).show()
+            } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                currentNetwork = networkInfo.subtypeName //todo boh direi che è ok
+            }
+        }
+
     }
 }
 
