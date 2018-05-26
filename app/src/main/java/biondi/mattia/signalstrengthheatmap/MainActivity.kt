@@ -2,6 +2,7 @@ package biondi.mattia.signalstrengthheatmap
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Location
 import android.net.*
 import android.net.wifi.WifiManager
@@ -139,6 +140,8 @@ class MainActivity :
 
         // Ottiene i permessi per utilizzare la posizione
         getLocationPermission()
+
+        title = "ciao"
     }
 
     override fun onResume() {
@@ -274,19 +277,16 @@ class MainActivity :
 
             // Una rete diventa disponibile
             override fun onAvailable(network: Network) {
-                Toast.makeText(this@MainActivity, "onAvailable", Toast.LENGTH_LONG).show()
                 networkChanged(network)
             }
 
             // Un cambio di capacità può indicare che è cambiato il tipo di connessione
             override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
-                Toast.makeText(this@MainActivity, "onCapabilitiesChanged", Toast.LENGTH_LONG).show()
                 networkChanged(network)
             }
 
             // Un cambio di connessione può indicare che è cambiato l'indirizzo IP
             override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
-                Toast.makeText(this@MainActivity, "onLinkPropertiesChanged", Toast.LENGTH_LONG).show()
                 networkChanged(network)
             }
 
@@ -298,36 +298,42 @@ class MainActivity :
 
             // Indica che abbiamo perso la rete
             override fun onLost(network: Network) {
-                // TODO
-                Toast.makeText(this@MainActivity, "onLost", Toast.LENGTH_LONG).show()
-            }
-
-            // Nessuna rete è disponibile
-            override fun onUnavailable() {
-                // TODO
-                Toast.makeText(this@MainActivity, "onUnavailable", Toast.LENGTH_LONG).show()
+                networkLost()
             }
 
             private fun networkChanged(network: Network) {
                 val networkCapabilities = connectivityManager!!.getNetworkCapabilities(network)
                 val networkInfo = connectivityManager!!.getNetworkInfo(network)
+                var intensity = 0
 
                 if (networkInfo.isConnected) {
                     if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
                         runOnUiThread({
                             nameText1.text = getWifiName()
                             typeText1.text = getString(R.string.wifi)
-                            intensityText1.text = getString(R.string.intensity1, getWifiIntensity() + 1, PRECISION)
+                            intensity = getWifiIntensity()
+                            intensityText1.text = getString(R.string.intensity1, intensity + 1, PRECISION)
+                            getQuality(intensity)
                         })
                     } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
                         runOnUiThread({
                             nameText1.text = getCarrierName()
                             val networkType = getNetworkType(networkInfo)
                             typeText1.text = networkType
-                            intensityText1.text = getString(R.string.intensity1, getNetworkIntensity(networkType) + 1, PRECISION)
+                            intensity = getNetworkIntensity(networkType)
+                            intensityText1.text = getString(R.string.intensity1,  intensity + 1, PRECISION)
+                            getQuality(intensity)
                         })
                     }
                 }
+            }
+
+            private fun networkLost() {
+                runOnUiThread({
+                    nameText1.text = getString(R.string.not_available)
+                    typeText1.text = getString(R.string.not_available)
+                    intensityText1.text = getString(R.string.not_available)
+                })
             }
         }
     }
@@ -510,7 +516,6 @@ class MainActivity :
                 if (cellList != null && cellList.isNotEmpty()){
                     val cellInfoWcdma = telephonyManager.allCellInfo[0] as CellInfoWcdma //todo android.telephony.CellInfoLte cannot be cast to android.telephony.CellInfoWcdma
                     intensity = cellInfoWcdma.cellSignalStrength.level.toDouble()
-                    //textUMTS1.text = (intensity + 1).toInt().toString()
                 }
 
         } catch (e: SecurityException) {
@@ -587,6 +592,35 @@ class MainActivity :
         } catch (e: SecurityException) {
         }
         return intensity
+    }
+
+    private fun getQuality(int: Int) {
+        lateinit var string: String
+        var color: Int = R.string.none
+        when (int) {
+            0 -> {
+                string = resources.getString(R.string.none)
+                color = ContextCompat.getColor(this, R.color.none)
+            }
+            1 -> {
+                string = resources.getString(R.string.poor)
+                color = ContextCompat.getColor(this, R.color.poor)
+            }
+            2 -> {
+                string = resources.getString(R.string.moderate)
+                color = ContextCompat.getColor(this, R.color.moderate)
+            }
+            3 -> {
+                string = resources.getString(R.string.good)
+                color = ContextCompat.getColor(this, R.color.good)
+            }
+            4 -> {
+                string = resources.getString(R.string.great)
+                color = ContextCompat.getColor(this, R.color.great)
+            }
+        }
+        qualityText.text = string
+        qualityText.setTextColor(color)
     }
 }
 

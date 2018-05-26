@@ -3,4 +3,9 @@
     <color name="colorPrimary">@color/primary_material_dark</color>
     <color name="colorPrimaryDark">@color/primary_dark_material_dark</color>
     <color name="colorAccent">@color/accent_material_dark</color>
+    <color name="none">#FF0000</color>
+    <color name="poor">#FF8C00</color>
+    <color name="moderate">#FFFF00</color>
+    <color name="good">#ADFF2F</color>
+    <color name="great">#00FF00</color>
 </resources>

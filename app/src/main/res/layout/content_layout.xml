@@ -13,7 +13,7 @@
     <android.support.constraint.ConstraintLayout
         android:id="@+id/topFrame"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="72dp"
         app:layout_constraintBottom_toTopOf="@+id/middleFrame"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -23,29 +23,36 @@
             android:id="@+id/nameText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:fontFamily="@font/roboto"
             android:text="@string/name"
+            android:textStyle="bold"
+            android:typeface="normal"
             app:layout_constraintBottom_toTopOf="@+id/typeText"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/typeText"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/nameText1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="@font/roboto"
             android:text="@string/not_available"
-            app:layout_constraintBottom_toTopOf="@+id/typeText1"
+            android:textStyle="bold"
+            android:typeface="normal"
+            app:layout_constraintBottom_toBottomOf="@+id/nameText"
             app:layout_constraintStart_toStartOf="@+id/intensityText1"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="@+id/nameText" />
 
         <TextView
             android:id="@+id/intensityText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:fontFamily="@font/roboto"
             android:text="@string/intensity"
+            android:textStyle="bold"
+            android:typeface="normal"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/typeText"
             app:layout_constraintTop_toBottomOf="@+id/typeText" />
 
         <TextView
@@ -53,17 +60,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:fontFamily="@font/roboto"
             android:text="@string/not_available"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:textStyle="bold"
+            android:typeface="normal"
+            app:layout_constraintBottom_toBottomOf="@+id/intensityText"
             app:layout_constraintStart_toEndOf="@+id/intensityText"
-            app:layout_constraintTop_toBottomOf="@+id/typeText1" />
+            app:layout_constraintTop_toTopOf="@+id/intensityText"
+            app:layout_constraintVertical_bias="1.0" />
 
         <TextView
             android:id="@+id/typeText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="16dp"
+            android:fontFamily="@font/roboto"
             android:text="@string/type"
+            android:textStyle="bold"
+            android:typeface="normal"
             app:layout_constraintBottom_toTopOf="@+id/intensityText"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/nameText" />
@@ -72,10 +86,26 @@
             android:id="@+id/typeText1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="@font/roboto"
             android:text="@string/not_available"
-            app:layout_constraintBottom_toTopOf="@+id/intensityText1"
+            android:textStyle="bold"
+            android:typeface="normal"
+            app:layout_constraintBottom_toBottomOf="@+id/typeText"
             app:layout_constraintStart_toStartOf="@+id/intensityText1"
-            app:layout_constraintTop_toBottomOf="@+id/nameText1" />
+            app:layout_constraintTop_toTopOf="@+id/typeText" />
+
+        <TextView
+            android:id="@+id/qualityText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:fontFamily="@font/roboto"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:typeface="normal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
     </android.support.constraint.ConstraintLayout>
 
     <android.support.constraint.ConstraintLayout
@@ -112,7 +142,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:fontFamily="@font/roboto"
             android:text="@string/current_location"
+            android:textStyle="bold"
+            android:typeface="normal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -122,7 +155,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:fontFamily="@font/roboto"
             android:text="@string/not_available"
+            android:textStyle="bold"
+            android:typeface="normal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/currentLocationText"
             app:layout_constraintTop_toTopOf="parent" />
