@@ -14,6 +14,8 @@
     <string name="alert_dialog_negative">Nope</string>
     <string name="current_location">Current location:</string>
     <string name="not_available">Not available</string>
-    <string name="current_connection">Current connection:</string>
-    <string name="signal_strength">Signal strength:</string>
+    <string name="name">Name:</string>
+    <string name="type">Type:</string>
+    <string name="intensity">Intensity:</string>
+    <string name="intensity1">%1$d / %2$d</string>
 </resources>

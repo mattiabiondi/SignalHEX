@@ -13,8 +13,7 @@ import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
-import android.telephony.CellInfoWcdma
-import android.telephony.TelephonyManager
+import android.telephony.*
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -51,8 +50,6 @@ class MainActivity :
     // Posizione attuale
     private var currentLocation: Location? = null
     private var previousLocation: Location? = null
-
-    private var currentNetwork: String = ""
 
     // Richiesta di posizione
     private lateinit var locationRequest: LocationRequest
@@ -139,7 +136,6 @@ class MainActivity :
         telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         createNetworkRequest()
         createNetworkCallback()
-
 
         // Ottiene i permessi per utilizzare la posizione
         getLocationPermission()
@@ -230,8 +226,9 @@ class MainActivity :
                         }
             } else {
                 // Se i permessi non sono stati ottenuti
-                map?.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, defaultZoom))
-                map?.uiSettings?.isMyLocationButtonEnabled = false
+                //map?.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, defaultZoom))
+                //map?.uiSettings?.isMyLocationButtonEnabled = false
+                //todo mostra pulsante per ottenere i permessi
             }
         } catch (e: SecurityException) {
         }
@@ -253,12 +250,12 @@ class MainActivity :
                     // Aggiorna la posizione attuale
                     previousLocation = currentLocation
                     currentLocation = location
-                    coordinatesText.text = location.latitude.toString() + ", " + location.longitude.toString()
+                    coordinatesText.text = (location.latitude).toString() + ", " + (location.longitude).toString()
                     // Passa la posizione attuale alla funzione che si occupa di generare la Heatmap
                     if (startBoolean) checkLocation()
 
                     // todo non è il posto giusto
-                    connectionText.text = currentNetwork
+                    //connectionText.text = currentNetwork
                 }
             }
         }
@@ -309,6 +306,28 @@ class MainActivity :
             override fun onUnavailable() {
                 // TODO
                 Toast.makeText(this@MainActivity, "onUnavailable", Toast.LENGTH_LONG).show()
+            }
+
+            private fun networkChanged(network: Network) {
+                val networkCapabilities = connectivityManager!!.getNetworkCapabilities(network)
+                val networkInfo = connectivityManager!!.getNetworkInfo(network)
+
+                if (networkInfo.isConnected) {
+                    if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                        runOnUiThread({
+                            nameText1.text = getWifiName()
+                            typeText1.text = getString(R.string.wifi)
+                            intensityText1.text = getString(R.string.intensity1, getWifiIntensity() + 1, PRECISION)
+                        })
+                    } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                        runOnUiThread({
+                            nameText1.text = getCarrierName()
+                            val networkType = getNetworkType(networkInfo)
+                            typeText1.text = networkType
+                            intensityText1.text = getString(R.string.intensity1, getNetworkIntensity(networkType) + 1, PRECISION)
+                        })
+                    }
+                }
             }
         }
     }
@@ -473,16 +492,15 @@ class MainActivity :
         umtsList.add(latLng)
     }
 
-    private fun addWifiLocation(location: Location) {
+    /*private fun addWifiLocation(location: Location) {
         val latLng = getWifiWeight(location)
         // Aggiunge la posizione attuale alla lista
         wifiList.add(latLng)
 
-    }
+    }*/
 
     private fun getUmtsWeight(location: Location) : WeightedLatLng {
         var intensity = WeightedLatLng.DEFAULT_INTENSITY
-        val telephonyManager = applicationContext.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
 
        //@TargetApi(Build.VERSION_CODES.O)
        // if (!telephonyManager.isDataEnabled) Toast.makeText(this, "Turn on data", Toast.LENGTH_SHORT).show()
@@ -500,30 +518,75 @@ class MainActivity :
         return WeightedLatLng(LatLng(location.latitude, location.longitude), intensity)
     }
 
-    private fun getWifiWeight(location: Location) : WeightedLatLng {
-        var intensity = WeightedLatLng.DEFAULT_INTENSITY
+    /*private fun getWifiWeight(location: Location) : WeightedLatLng {
         if (wifiManager.isWifiEnabled) {
-            val wifiInfo = wifiManager.connectionInfo
-            if (wifiInfo != null) {
-                intensity = WifiManager.calculateSignalLevel(wifiInfo.rssi, PRECISION).toDouble()
-                //textWifi1.text = (intensity + 1).toInt().toString()
-            }
+
+
         }
         return WeightedLatLng(LatLng(location.latitude, location.longitude), intensity)
+    }*/
+
+
+
+    private fun getWifiName(): String {
+        var string = wifiManager.connectionInfo.ssid
+        string = string.drop(1).dropLast(1) //Rimuove le virgolette dal nome
+        return string
     }
 
-    private fun networkChanged(network: Network) {
-        val networkCapabilities = connectivityManager!!.getNetworkCapabilities(network)
-        val networkInfo = connectivityManager!!.getNetworkInfo(network)
-        if (networkInfo.isConnected) {
-            if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                currentNetwork = wifiManager.connectionInfo.ssid //todo togli le virgolette dal nome
-                //Toast.makeText(this, wifiManager.connectionInfo.ssid, Toast.LENGTH_LONG).show()
-            } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                currentNetwork = networkInfo.subtypeName //todo boh direi che è ok
-            }
+    private fun getWifiIntensity(): Int {
+        var intensity = 0
+        val wifiInfo = wifiManager.connectionInfo
+        if (wifiInfo != null) {
+            intensity = WifiManager.calculateSignalLevel(wifiInfo.rssi, PRECISION)
         }
+        return intensity
+    }
 
+    private fun getCarrierName(): String {
+        return telephonyManager.networkOperatorName
+    }
+
+    private fun getNetworkType(networkInfo: NetworkInfo): String {
+        when (networkInfo.subtype) {
+            TelephonyManager.NETWORK_TYPE_GPRS,
+            TelephonyManager.NETWORK_TYPE_EDGE,
+            TelephonyManager.NETWORK_TYPE_CDMA,
+            TelephonyManager.NETWORK_TYPE_1xRTT,
+            TelephonyManager.NETWORK_TYPE_IDEN ->
+                return "2G"
+            TelephonyManager.NETWORK_TYPE_UMTS,
+            TelephonyManager.NETWORK_TYPE_EVDO_0,
+            TelephonyManager.NETWORK_TYPE_EVDO_A,
+            TelephonyManager.NETWORK_TYPE_HSDPA,
+            TelephonyManager.NETWORK_TYPE_HSUPA,
+            TelephonyManager.NETWORK_TYPE_HSPA,
+            TelephonyManager.NETWORK_TYPE_EVDO_B,
+            TelephonyManager.NETWORK_TYPE_EHRPD,
+            TelephonyManager.NETWORK_TYPE_HSPAP ->
+                return "3G"
+            TelephonyManager.NETWORK_TYPE_LTE ->
+                return "4G"
+            else ->
+                return "UNKNOWN"
+        }
+    }
+
+    private fun getNetworkIntensity(string: String): Int {
+        var intensity = 0
+        try {
+            val cellList = telephonyManager.allCellInfo
+            if (cellList != null && cellList.isNotEmpty()) {
+                val cellInfo = telephonyManager.allCellInfo[0]
+                when (string) {
+                    "2G" -> intensity = (cellInfo as CellInfoGsm).cellSignalStrength.level
+                    "3G" -> intensity = (cellInfo as CellInfoWcdma).cellSignalStrength.level
+                    "4G" -> intensity = (cellInfo as CellInfoLte).cellSignalStrength.level
+                }
+            }
+        } catch (e: SecurityException) {
+        }
+        return intensity
     }
 }
 

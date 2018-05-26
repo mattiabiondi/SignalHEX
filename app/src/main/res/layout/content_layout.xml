@@ -7,6 +7,7 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".MainActivity"
+    tools:layout_editor_absoluteY="81dp"
     tools:showIn="@layout/app_bar_layout">
 
     <android.support.constraint.ConstraintLayout
@@ -19,45 +20,62 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/currentConnectText"
+            android:id="@+id/nameText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:text="@string/current_connection"
-            app:layout_constraintBottom_toTopOf="@+id/signalStrengthText"
+            android:text="@string/name"
+            app:layout_constraintBottom_toTopOf="@+id/typeText"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/connectionText"
+            android:id="@+id/nameText1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
             android:text="@string/not_available"
-            app:layout_constraintBottom_toBottomOf="@+id/currentConnectText"
-            app:layout_constraintStart_toEndOf="@+id/currentConnectText"
-            app:layout_constraintTop_toTopOf="@+id/currentConnectText" />
-
-        <TextView
-            android:id="@+id/signalStrengthText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginStart="8dp"
-            android:text="@string/signal_strength"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/currentConnectText" />
+            app:layout_constraintBottom_toTopOf="@+id/typeText1"
+            app:layout_constraintStart_toStartOf="@+id/intensityText1"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/intensityText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/intensity"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/typeText" />
+
+        <TextView
+            android:id="@+id/intensityText1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:text="@string/not_available"
-            app:layout_constraintBottom_toBottomOf="@+id/signalStrengthText"
-            app:layout_constraintStart_toStartOf="@+id/connectionText"
-            app:layout_constraintTop_toTopOf="@+id/signalStrengthText" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/intensityText"
+            app:layout_constraintTop_toBottomOf="@+id/typeText1" />
+
+        <TextView
+            android:id="@+id/typeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/type"
+            app:layout_constraintBottom_toTopOf="@+id/intensityText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/nameText" />
+
+        <TextView
+            android:id="@+id/typeText1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/not_available"
+            app:layout_constraintBottom_toTopOf="@+id/intensityText1"
+            app:layout_constraintStart_toStartOf="@+id/intensityText1"
+            app:layout_constraintTop_toBottomOf="@+id/nameText1" />
     </android.support.constraint.ConstraintLayout>
 
     <android.support.constraint.ConstraintLayout
