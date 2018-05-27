@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="losing_connection_in">
+        <item quantity="one">Losing connection in %1$d second</item>
+        <item quantity="other">Losing connection in %1$d seconds</item>
+    </plurals>
+</resources>

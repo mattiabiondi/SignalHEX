@@ -31,11 +31,7 @@ import kotlinx.android.synthetic.main.wifi_switch_layout.*
 
 class MainActivity :
         AppCompatActivity(),
-        NavigationView.OnNavigationItemSelectedListener,
-        OnMapReadyCallback {
-
-    // Costrutto del FusedLocationProviderClient
-    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+        NavigationView.OnNavigationItemSelectedListener{
 
     // Costrutto del Connectivity Manager
     private var connectivityManager: ConnectivityManager? = null
@@ -48,36 +44,11 @@ class MainActivity :
     // Autorizzazioni
     private var locationPermission = false
 
-    // Posizione attuale
-    private var currentLocation: Location? = null
-    private var previousLocation: Location? = null
-
-    // Richiesta di posizione
-    private lateinit var locationRequest: LocationRequest
     private lateinit var networkRequest: NetworkRequest
 
-    // Intervalli di tempo in cui si aggiorna la posizione
-    private val INTERVAL = 1000L
-    private val FASTEST_INTERVAL = 1000L
-
-    // Comandi da eseguire dopo aver ottenuto la posizione
-    private lateinit var locationCallback: LocationCallback
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
 
-    // Booleana per mettere in pausa le richieste di posizione durante onPause()
-    private var requestingLocationUpdates = false
     private var requestingNetworkUpdates = false
-
-    // Posizione di default se non viene concessa l'autorizzazione ad utilizzare la posizione (DISI)
-    private val defaultLocation = LatLng(44.497264, 11.356047)
-    private val defaultZoom: Float = 20f
-
-    // La mappa
-    private var map: GoogleMap? = null
-
-    // Chiavi per memorizzare gli stati dell'activity
-    private val REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key"
-    private val KEY_LOCATION = "location"
 
     // Booleani che controllano quale mappa visualizzare
     private var umtsBoolean = false
@@ -86,10 +57,6 @@ class MainActivity :
     private val LTE_BOOLEAN_KEY = "lte-boolean"
     private var wifiBoolean = false
     private val WIFI_BOOLEAN_KEY = "wifi-boolean"
-
-    // Boolean che controlla se deve ottenere o meno i dati
-    private var startBoolean = false
-    private val START_KEY = "start"
 
     // Referenze ai pulsanti del menu per modificarne le icone a runtime
     private var umtsItem: MenuItem? = null
@@ -119,18 +86,6 @@ class MainActivity :
         // Imposta un Listener sulla barra di navigazione
         nav_view.setNavigationItemSelectedListener(this)
 
-        // Inizializzazione del FusedLocationProvider
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-        // Recupera il Fragment in cui mostrare la mappa
-        // Nota: è necessario il cast a MapFragment in quanto la funzione ritorna un Fragment
-        val mapFragment = fragmentManager.findFragmentById(R.id.main_map) as MapFragment
-        // Acquisisce la mappa e la inizializza quando l'istanza GoogleMap è pronta per essere utilizzata
-        mapFragment.getMapAsync(this)
-        // Crea la richiesta di aggiornamenti continui sulla posizione
-        createLocationRequest()
-        // Crea l'oggetto che si occuperà di eseguire i comandi dopo aver ottenuto la posizione
-        createLocationCallback()
-
         // Inizializzazione del ConnectivityManager
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
@@ -138,28 +93,25 @@ class MainActivity :
         createNetworkRequest()
         createNetworkCallback()
 
-        // Ottiene i permessi per utilizzare la posizione
-        getLocationPermission()
+        if (savedInstanceState == null) {
+            addFragment()
+        }
 
-        title = "ciao"
+        // Ottiene i permessi per utilizzare la posizione
+        //getLocationPermission()
     }
 
     override fun onResume() {
         super.onResume()
-        startLocationUpdates()
         startNetworkUpdates()
     }
 
     override fun onPause() {
         super.onPause()
-        stopLocationUpdates()
         stopNetworkUpdates()
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
-        outState?.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, requestingLocationUpdates)
-        outState?.putParcelable(KEY_LOCATION, currentLocation)
-        outState?.putBoolean(START_KEY, startBoolean)
         outState?.putBoolean(UMTS_BOOLEAN_KEY, umtsBoolean)
         outState?.putBoolean(LTE_BOOLEAN_KEY, lteBoolean)
         outState?.putBoolean(WIFI_BOOLEAN_KEY, wifiBoolean)
@@ -170,12 +122,19 @@ class MainActivity :
         // Chiama la superclasse in modo da recuperare la gerarchia della view
         super.onRestoreInstanceState(savedInstanceState)
         // Recupera lo stato delle variabili dall'istanza salvata
-        requestingLocationUpdates = savedInstanceState?.getBoolean(REQUESTING_LOCATION_UPDATES_KEY) as Boolean
-        currentLocation = savedInstanceState.getParcelable(KEY_LOCATION)
-        startBoolean = savedInstanceState.getBoolean(START_KEY)
-        umtsBoolean = savedInstanceState.getBoolean(UMTS_BOOLEAN_KEY)
-        lteBoolean = savedInstanceState.getBoolean(LTE_BOOLEAN_KEY)
-        wifiBoolean = savedInstanceState.getBoolean(WIFI_BOOLEAN_KEY)
+        if (savedInstanceState != null) {
+            umtsBoolean = savedInstanceState.getBoolean(UMTS_BOOLEAN_KEY)
+            lteBoolean = savedInstanceState.getBoolean(LTE_BOOLEAN_KEY)
+            wifiBoolean = savedInstanceState.getBoolean(WIFI_BOOLEAN_KEY)
+        }
+    }
+
+    private fun addFragment() {
+        if(locationPermission){ // todo se cambi l'autorizzazione a mano non cambia il boolean
+            fragmentManager.beginTransaction().replace(R.id.fragment_frame, MapFragment()).commit()
+        } else {
+            fragmentManager.beginTransaction().replace(R.id.fragment_frame, LocationPermissionFragment()).commit()
+        }
     }
 
     private fun getLocationPermission() {
@@ -209,61 +168,6 @@ class MainActivity :
         }
     }
 
-    override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
-        // Ottiene la posizione attuale
-        getLocation()
-        // Aggiorna l'interfaccia della mappa (mostra o nasconde i comandi)
-        updateLocationUI()
-    }
-
-    private fun getLocation() {
-        // Ottiene la miglior e più recente posizione posizione del dispositivo, che può anche essere nulla nei casi in cui la posizione non sia disponibile
-        try {
-            if (locationPermission) {
-                fusedLocationProviderClient.lastLocation
-                        .addOnSuccessListener { location : Location? ->
-                            currentLocation = location
-                            map?.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                    LatLng(currentLocation?.latitude as Double, currentLocation?.longitude as Double), defaultZoom))
-                        }
-            } else {
-                // Se i permessi non sono stati ottenuti
-                //map?.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, defaultZoom))
-                //map?.uiSettings?.isMyLocationButtonEnabled = false
-                //todo mostra pulsante per ottenere i permessi
-            }
-        } catch (e: SecurityException) {
-        }
-    }
-
-    private fun createLocationRequest() {
-        locationRequest = LocationRequest().apply {
-            interval = INTERVAL
-            fastestInterval = FASTEST_INTERVAL
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        }
-    }
-
-    private fun createLocationCallback() {
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                locationResult ?: return
-                for (location in locationResult.locations) {
-                    // Aggiorna la posizione attuale
-                    previousLocation = currentLocation
-                    currentLocation = location
-                    coordinatesText.text = (location.latitude).toString() + ", " + (location.longitude).toString()
-                    // Passa la posizione attuale alla funzione che si occupa di generare la Heatmap
-                    if (startBoolean) checkLocation()
-
-                    // todo non è il posto giusto
-                    //connectionText.text = currentNetwork
-                }
-            }
-        }
-    }
-
     private fun createNetworkRequest() {
         networkRequest = NetworkRequest.Builder()
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -292,8 +196,7 @@ class MainActivity :
 
             // Indica che perderemo la connessione tra maxMsToLive millisecondi
             override fun onLosing(network: Network, maxMsToLive: Int) {
-                // TODO
-                Toast.makeText(this@MainActivity, "onLosing", Toast.LENGTH_LONG).show()
+                networkLosing(maxMsToLive)
             }
 
             // Indica che abbiamo perso la rete
@@ -304,7 +207,7 @@ class MainActivity :
             private fun networkChanged(network: Network) {
                 val networkCapabilities = connectivityManager!!.getNetworkCapabilities(network)
                 val networkInfo = connectivityManager!!.getNetworkInfo(network)
-                var intensity = 0
+                var intensity: Int
 
                 if (networkInfo.isConnected) {
                     if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
@@ -325,37 +228,32 @@ class MainActivity :
                             getQuality(intensity)
                         })
                     }
+                } else if (!networkInfo.isConnected) {
+                    runOnUiThread({
+                        nameText1.text = getString(R.string.not_connected)
+                        typeText1.text = getString(R.string.not_connected)
+                        intensityText1.text = getString(R.string.not_connected)
+                        getQuality(0)
+                    })
                 }
+            }
+
+            //todo testala
+            private fun networkLosing(int: Int) {
+                runOnUiThread({
+                    val seconds = int * 1000 // milliseconds to seconds
+                    intensityText1.text = resources.getQuantityString(R.plurals.losing_connection_in, seconds, seconds)
+                })
             }
 
             private fun networkLost() {
                 runOnUiThread({
                     nameText1.text = getString(R.string.not_available)
                     typeText1.text = getString(R.string.not_available)
-                    intensityText1.text = getString(R.string.not_available)
+                    intensityText1.text = getString(R.string.intensity1,  0 + 1, PRECISION)
+                    getQuality(0)
                 })
             }
-        }
-    }
-
-    private fun startLocationUpdates() {
-        try {
-            if (locationPermission && !requestingLocationUpdates) {
-                requestingLocationUpdates = true
-                fusedLocationProviderClient.requestLocationUpdates(
-                        locationRequest,
-                        locationCallback,
-                        null // Looper
-               )
-            }
-        } catch (e: SecurityException) {
-        }
-    }
-
-    private fun stopLocationUpdates() {
-        if (requestingLocationUpdates) {
-            requestingLocationUpdates = false
-            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         }
     }
 
@@ -372,23 +270,6 @@ class MainActivity :
         if (requestingNetworkUpdates) {
             requestingNetworkUpdates = false
             connectivityManager?.unregisterNetworkCallback(networkCallback)
-        }
-    }
-
-    private fun updateLocationUI() {
-        map ?: return
-
-        try {
-            if (locationPermission) {
-                map?.isMyLocationEnabled = true
-                map?.uiSettings?.isMyLocationButtonEnabled = true
-            }
-            else {
-                map?.isMyLocationEnabled = false
-                map?.uiSettings?.isMyLocationButtonEnabled = false
-                currentLocation = null
-            }
-        } catch (e: SecurityException) {
         }
     }
 
@@ -425,10 +306,6 @@ class MainActivity :
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-
         when (item.itemId) {
             R.id.start_item -> {
                 startBoolean = !startBoolean
@@ -443,7 +320,7 @@ class MainActivity :
                     startBoolean = false
                     invalidateOptionsMenu()
                     // Svuota la lista
-                    wifiList.clear()
+                    //wifiList.clear()
                 })
                 alert.setNegativeButton(R.string.alert_dialog_negative, {
                     _, _ ->  //niente
@@ -482,56 +359,6 @@ class MainActivity :
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }
-
-    private fun checkLocation() {
-        if (currentLocation != previousLocation) { //todo da migliorare
-            if (wifiBoolean) {
-                //addUmtsLocation(currentLocation!!)
-                //addWifiLocation(currentLocation!!)
-            }
-        }
-    }
-
-    private fun addUmtsLocation(location: Location) {
-        val latLng = getUmtsWeight(location)
-        // Aggiunge la posizione attuale alla lista
-        umtsList.add(latLng)
-    }
-
-    /*private fun addWifiLocation(location: Location) {
-        val latLng = getWifiWeight(location)
-        // Aggiunge la posizione attuale alla lista
-        wifiList.add(latLng)
-
-    }*/
-
-    private fun getUmtsWeight(location: Location) : WeightedLatLng {
-        var intensity = WeightedLatLng.DEFAULT_INTENSITY
-
-       //@TargetApi(Build.VERSION_CODES.O)
-       // if (!telephonyManager.isDataEnabled) Toast.makeText(this, "Turn on data", Toast.LENGTH_SHORT).show()
-
-        try {
-                val cellList = telephonyManager.allCellInfo
-                if (cellList != null && cellList.isNotEmpty()){
-                    val cellInfoWcdma = telephonyManager.allCellInfo[0] as CellInfoWcdma //todo android.telephony.CellInfoLte cannot be cast to android.telephony.CellInfoWcdma
-                    intensity = cellInfoWcdma.cellSignalStrength.level.toDouble()
-                }
-
-        } catch (e: SecurityException) {
-        }
-        return WeightedLatLng(LatLng(location.latitude, location.longitude), intensity)
-    }
-
-    /*private fun getWifiWeight(location: Location) : WeightedLatLng {
-        if (wifiManager.isWifiEnabled) {
-
-
-        }
-        return WeightedLatLng(LatLng(location.latitude, location.longitude), intensity)
-    }*/
-
-
 
     private fun getWifiName(): String {
         var string = wifiManager.connectionInfo.ssid
