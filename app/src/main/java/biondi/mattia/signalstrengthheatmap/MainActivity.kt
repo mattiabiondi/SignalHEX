@@ -38,12 +38,6 @@ class MainActivity :
     private lateinit var wifiManager: WifiManager
     private lateinit var telephonyManager: TelephonyManager
 
-    // Codice di richiesta
-    private val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
-
-    // Autorizzazioni
-    private var locationPermission = false
-
     private lateinit var networkRequest: NetworkRequest
 
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
@@ -59,9 +53,9 @@ class MainActivity :
     private val WIFI_BOOLEAN_KEY = "wifi-boolean"
 
     // Referenze ai pulsanti del menu per modificarne le icone a runtime
-    private var umtsItem: MenuItem? = null
-    private var lteItem: MenuItem? = null
-    private var wifiItem: MenuItem? = null
+    private lateinit var umtsItem: MenuItem
+    private lateinit var lteItem: MenuItem
+    private lateinit var wifiItem: MenuItem
 
     // Lista delle coordinate ottenute dal dispositivo
     var umtsList = mutableListOf<WeightedLatLng>()
@@ -92,17 +86,11 @@ class MainActivity :
         telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         createNetworkRequest()
         createNetworkCallback()
-
-        if (savedInstanceState == null) {
-            addFragment()
-        }
-
-        // Ottiene i permessi per utilizzare la posizione
-        //getLocationPermission()
     }
 
     override fun onResume() {
         super.onResume()
+        addFragment()
         startNetworkUpdates()
     }
 
@@ -129,29 +117,17 @@ class MainActivity :
         }
     }
 
+    private fun locationPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    } //todo make it global
+
     private fun addFragment() {
-        if(locationPermission){ // todo se cambi l'autorizzazione a mano non cambia il boolean
+        if (locationPermission()){
             fragmentManager.beginTransaction().replace(R.id.fragment_frame, MapFragment()).commit()
         } else {
             fragmentManager.beginTransaction().replace(R.id.fragment_frame, LocationPermissionFragment()).commit()
         }
-    }
-
-    private fun getLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // Permessi non ottenuti
-            // Fornisce una spiegazione all'utente se quest'ultimo nega più volte i permessi per accedere alla posizione
-            if(ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.ACCESS_FINE_LOCATION)) {
-                Toast.makeText(this, "Location permission needed.", Toast.LENGTH_SHORT).show()
-            } else {
-                // Nessuna spiegazione necessaria, possiamo chiedere i permessi
-                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION)
-            }
-        } else {
-            // Permessi già ottenuti
-            locationPermission = true
-        }
-    }
+    } //todo make it global
 
     // Si occupa del risultato delle richieste
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -160,8 +136,10 @@ class MainActivity :
                 // Se la richiesta viene cancellata gli array risultanti sono vuoti
                 if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Permessi ottenuti
+                    addFragment()
                 } else {
                     // Permessi negati
+                    Toast.makeText(this, "¯\\_(ツ)_/¯", Toast.LENGTH_LONG).show()
                 }
                 return
             }
@@ -275,14 +253,14 @@ class MainActivity :
 
     // TODO: handle screen rotate
     private fun updateIcons() {
-        if(umtsBoolean) umtsItem?.setIcon(R.drawable.ic_cellular_on)
-        else umtsItem?.setIcon(R.drawable.ic_cellular_off)
+        if(umtsBoolean) umtsItem.setIcon(R.drawable.ic_cellular_on)
+        else umtsItem.setIcon(R.drawable.ic_cellular_off)
 
-        if(lteBoolean) lteItem?.setIcon(R.drawable.ic_cellular_on)
-        else lteItem?.setIcon(R.drawable.ic_cellular_off)
+        if(lteBoolean) lteItem.setIcon(R.drawable.ic_cellular_on)
+        else lteItem.setIcon(R.drawable.ic_cellular_off)
 
-        if(wifiBoolean) wifiItem?.setIcon(R.drawable.ic_wifi_on)
-        else wifiItem?.setIcon(R.drawable.ic_wifi_off)
+        if(wifiBoolean) wifiItem.setIcon(R.drawable.ic_wifi_on)
+        else wifiItem.setIcon(R.drawable.ic_wifi_off)
     }
 
     override fun onBackPressed() {

@@ -12,42 +12,40 @@ import com.google.android.gms.maps.MapFragment
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 
-// Costrutto del FusedLocationProviderClient
-private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-
-// Posizione attuale
-private var currentLocation: Location? = null
-private var previousLocation: Location? = null
-
-// Richiesta di posizione
-private lateinit var locationRequest: LocationRequest
-
-// Intervalli di tempo in cui si aggiorna la posizione
-private val INTERVAL = 1000L
-private val FASTEST_INTERVAL = 1000L
-
-// Comandi da eseguire dopo aver ottenuto la posizione
-private lateinit var locationCallback: LocationCallback
-
-// Booleana per mettere in pausa le richieste di posizione durante onPause()
-private var requestingLocationUpdates = false
-
-// Posizione di default se non viene concessa l'autorizzazione ad utilizzare la posizione (DISI)
-private val defaultLocation = LatLng(44.497264, 11.356047)
-private val defaultZoom: Float = 20f
-
-// La mappa
-private var map: GoogleMap? = null
-
-// Chiavi per memorizzare gli stati dell'activity
-private val REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key"
-private val KEY_LOCATION = "location"
-
-// Boolean che controlla se deve ottenere o meno i dati
-var startBoolean = false
-private val START_KEY = "start"
-
 class MapFragment: Fragment(), OnMapReadyCallback {
+
+    // Costrutto del FusedLocationProviderClient
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+
+    // Posizione attuale
+    private var currentLocation: Location? = null
+    private var previousLocation: Location? = null
+
+    // Richiesta di posizione
+    private lateinit var locationRequest: LocationRequest
+
+    // Intervalli di tempo in cui si aggiorna la posizione
+    private val INTERVAL = 1000L
+    private val FASTEST_INTERVAL = 1000L
+
+    // Comandi da eseguire dopo aver ottenuto la posizione
+    private lateinit var locationCallback: LocationCallback
+
+    // Booleana per mettere in pausa le richieste di posizione durante onPause()
+    private var requestingLocationUpdates = false
+
+    // Posizione di default se non viene concessa l'autorizzazione ad utilizzare la posizione (DISI)
+    private val defaultLocation = LatLng(44.497264, 11.356047)
+    private val defaultZoom: Float = 20f
+
+    // La mappa
+    private var map: GoogleMap? = null
+
+    // Chiavi per memorizzare gli stati dell'activity
+    private val REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key"
+    private val KEY_LOCATION = "location"
+
+    private val START_KEY = "start"
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater!!.inflate(R.layout.map_layout, container, false)
@@ -80,7 +78,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     override fun onPause() {
         super.onPause()
         //stopLocationUpdates()
-    }
+    } //todo metti a posto stati activity durante on pause e mostra i pulsanti solo nella mappa
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
@@ -105,6 +103,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         // Aggiorna l'interfaccia della mappa (mostra o nasconde i comandi)
         //updateLocationUI()
     }
+
 
     /*
     private fun getLocation() {
