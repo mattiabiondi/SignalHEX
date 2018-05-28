@@ -6,11 +6,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import biondi.mattia.signalstrengthheatmap.R.id.toolbar
 import com.google.android.gms.location.*
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapFragment
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
+import kotlinx.android.synthetic.main.content_layout.*
 
 class MapFragment: Fragment(), OnMapReadyCallback {
 
@@ -65,19 +68,19 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         // Acquisisce la mappa e la inizializza quando l'istanza GoogleMap è pronta per essere utilizzata
         mapFragment.getMapAsync(this)
         // Crea la richiesta di aggiornamenti continui sulla posizione
-        //createLocationRequest()
+        createLocationRequest()
         // Crea l'oggetto che si occuperà di eseguire i comandi dopo aver ottenuto la posizione
-        //createLocationCallback()
+        createLocationCallback()
     }
 
     override fun onResume() {
         super.onResume()
-        //startLocationUpdates()
+        startLocationUpdates()
     }
 
     override fun onPause() {
         super.onPause()
-        //stopLocationUpdates()
+        stopLocationUpdates()
     } //todo metti a posto stati activity durante on pause e mostra i pulsanti solo nella mappa
 
     override fun onSaveInstanceState(outState: Bundle?) {
@@ -99,29 +102,22 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         // Ottiene la posizione attuale
-        //getLocation()
+        getLocation()
         // Aggiorna l'interfaccia della mappa (mostra o nasconde i comandi)
-        //updateLocationUI()
+        updateLocationUI()
     }
 
 
-    /*
+
     private fun getLocation() {
         // Ottiene la miglior e più recente posizione posizione del dispositivo, che può anche essere nulla nei casi in cui la posizione non sia disponibile
         try {
-            if (locationPermission) {
-                fusedLocationProviderClient.lastLocation
-                        .addOnSuccessListener { location : Location? ->
-                            currentLocation = location
-                            map?.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                    LatLng(currentLocation?.latitude as Double, currentLocation?.longitude as Double), defaultZoom))
-                        }
-            } else {
-                // Se i permessi non sono stati ottenuti
-                //map?.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, defaultZoom))
-                //map?.uiSettings?.isMyLocationButtonEnabled = false
-                //todo mostra pulsante per ottenere i permessi
-            }
+            fusedLocationProviderClient.lastLocation
+                    .addOnSuccessListener { location : Location? ->
+                        currentLocation = location
+                        map?.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                LatLng(currentLocation?.latitude as Double, currentLocation?.longitude as Double), defaultZoom))
+                    }
         } catch (e: SecurityException) {
         }
     }
@@ -130,15 +126,9 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         map ?: return
 
         try {
-            if (locationPermission) {
-                map?.isMyLocationEnabled = true
-                map?.uiSettings?.isMyLocationButtonEnabled = true
-            }
-            else {
-                map?.isMyLocationEnabled = false
-                map?.uiSettings?.isMyLocationButtonEnabled = false
-                currentLocation = null
-            }
+            map?.isMyLocationEnabled = true
+            map?.uiSettings?.isMyLocationButtonEnabled = true
+
         } catch (e: SecurityException) {
         }
     }
@@ -159,9 +149,9 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                     // Aggiorna la posizione attuale
                     previousLocation = currentLocation
                     currentLocation = location
-                    coordinatesText.text = (location.latitude).toString() + ", " + (location.longitude).toString()
+                    activity.coordinatesText.text = (location.latitude).toString() + ", " + (location.longitude).toString()
                     // Passa la posizione attuale alla funzione che si occupa di generare la Heatmap
-                    if (startBoolean) checkLocation()
+                    //if (startBoolean) checkLocation()
                 }
             }
         }
@@ -169,7 +159,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     private fun startLocationUpdates() {
         try {
-            if (locationPermission && !requestingLocationUpdates) {
+            if (!requestingLocationUpdates) {
                 requestingLocationUpdates = true
                 fusedLocationProviderClient.requestLocationUpdates(
                         locationRequest,
@@ -188,12 +178,12 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun checkLocation() {
+    /*private fun checkLocation() {
         if (currentLocation != previousLocation) { //todo da migliorare
             if (wifiBoolean) {
 
             }
         }
-    }
-*/
+    }*/
+
 }

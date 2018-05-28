@@ -52,11 +52,6 @@ class MainActivity :
     private var wifiBoolean = false
     private val WIFI_BOOLEAN_KEY = "wifi-boolean"
 
-    // Referenze ai pulsanti del menu per modificarne le icone a runtime
-    private lateinit var umtsItem: MenuItem
-    private lateinit var lteItem: MenuItem
-    private lateinit var wifiItem: MenuItem
-
     // Lista delle coordinate ottenute dal dispositivo
     var umtsList = mutableListOf<WeightedLatLng>()
     var lteList = mutableListOf<WeightedLatLng>()
@@ -251,16 +246,15 @@ class MainActivity :
         }
     }
 
-    // TODO: handle screen rotate
     private fun updateIcons() {
-        if(umtsBoolean) umtsItem.setIcon(R.drawable.ic_cellular_on)
-        else umtsItem.setIcon(R.drawable.ic_cellular_off)
+        if(umtsBoolean) nav_view.menu.findItem(R.id.umts_item).setIcon(R.drawable.ic_cellular_on)
+        else nav_view.menu.findItem(R.id.umts_item).setIcon(R.drawable.ic_cellular_off)
 
-        if(lteBoolean) lteItem.setIcon(R.drawable.ic_cellular_on)
-        else lteItem.setIcon(R.drawable.ic_cellular_off)
+        if(lteBoolean) nav_view.menu.findItem(R.id.lte_item).setIcon(R.drawable.ic_cellular_on)
+        else nav_view.menu.findItem(R.id.lte_item).setIcon(R.drawable.ic_cellular_off)
 
-        if(wifiBoolean) wifiItem.setIcon(R.drawable.ic_wifi_on)
-        else wifiItem.setIcon(R.drawable.ic_wifi_off)
+        if(wifiBoolean) nav_view.menu.findItem(R.id.wifi_item).setIcon(R.drawable.ic_wifi_on)
+        else nav_view.menu.findItem(R.id.wifi_item).setIcon(R.drawable.ic_wifi_off)
     }
 
     override fun onBackPressed() {
@@ -276,9 +270,9 @@ class MainActivity :
         return true
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        if (startBoolean) menu?.findItem(R.id.start_item)?.setIcon(R.drawable.ic_pause)
-        else menu?.findItem(R.id.start_item)?.setIcon(R.drawable.ic_play)
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        if (startBoolean) menu.findItem(R.id.start_item)?.setIcon(R.drawable.ic_pause)
+        else menu.findItem(R.id.start_item)?.setIcon(R.drawable.ic_play)
         updateIcons()
         return true
     }
@@ -314,17 +308,14 @@ class MainActivity :
         // Aggiorna le icone del Navigation Drawer quando vengono selezionate
         when (item.itemId) {
             R.id.umts_item -> {
-                umtsItem = item
                 umtsBoolean = !umtsBoolean
                 umts_switch.isChecked = umtsBoolean
             }
             R.id.lte_item -> {
-                lteItem = item
                 lteBoolean = !lteBoolean
                 lte_switch.isChecked = lteBoolean
             }
             R.id.wifi_item -> {
-                wifiItem = item
                 wifiBoolean = !wifiBoolean
                 wifi_switch.isChecked = wifiBoolean
             }
@@ -429,4 +420,4 @@ class MainActivity :
     }
 }
 
-//todo controlli is enabled sugli interruttori, mostrare la mappa solo dopo aver ottenuto i permessi
+//todo controlli is enabled sugli interruttori

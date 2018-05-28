@@ -4,13 +4,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/start_item"
+        android:icon="@drawable/ic_play"
         android:orderInCategory="101"
         android:title="@string/start"
-        android:icon="@drawable/ic_play"
         app:showAsAction="always" />
     <item
         android:id="@+id/refresh"
-        android:title="@string/refresh"
         android:icon="@drawable/ic_refresh"
-        app:showAsAction="ifRoom"/>
+        android:title="@string/refresh"
+        app:showAsAction="ifRoom" />
 </menu>
