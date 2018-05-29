@@ -4,8 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:showIn="navigation_view">
 
-    <group
-        android:checkableBehavior="single">
+    <group>
         <item
             android:id="@+id/umts_item"
             android:icon="@drawable/ic_cellular_off"

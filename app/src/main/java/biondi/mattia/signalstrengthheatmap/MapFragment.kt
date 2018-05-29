@@ -56,6 +56,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     override fun onStart() {
         super.onStart()
+        activity.invalidateOptionsMenu()
         // Imposta il titolo dell'Activity
         //activity.setTitle(R.string.)
 

@@ -2,13 +2,10 @@ package biondi.mattia.signalstrengthheatmap
 
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Color
-import android.location.Location
 import android.net.*
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.design.widget.NavigationView
-import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
@@ -18,9 +15,6 @@ import android.telephony.*
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
-import com.google.android.gms.location.*
-import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.heatmaps.WeightedLatLng
 import kotlinx.android.synthetic.main.main_layout.*
 import kotlinx.android.synthetic.main.app_bar_layout.*
@@ -247,14 +241,38 @@ class MainActivity :
     }
 
     private fun updateIcons() {
-        if(umtsBoolean) nav_view.menu.findItem(R.id.umts_item).setIcon(R.drawable.ic_cellular_on)
-        else nav_view.menu.findItem(R.id.umts_item).setIcon(R.drawable.ic_cellular_off)
+        if (locationPermission()) {
+            nav_view.menu.findItem(R.id.umts_item).isEnabled = true
+            umts_switch.isEnabled = true
+            if(umtsBoolean) nav_view.menu.findItem(R.id.umts_item).setIcon(R.drawable.ic_cellular_on)
+            else nav_view.menu.findItem(R.id.umts_item).setIcon(R.drawable.ic_cellular_off)
 
-        if(lteBoolean) nav_view.menu.findItem(R.id.lte_item).setIcon(R.drawable.ic_cellular_on)
-        else nav_view.menu.findItem(R.id.lte_item).setIcon(R.drawable.ic_cellular_off)
+            nav_view.menu.findItem(R.id.lte_item).isEnabled = true
+            lte_switch.isEnabled = true
+            if(lteBoolean) nav_view.menu.findItem(R.id.lte_item).setIcon(R.drawable.ic_cellular_on)
+            else nav_view.menu.findItem(R.id.lte_item).setIcon(R.drawable.ic_cellular_off)
 
-        if(wifiBoolean) nav_view.menu.findItem(R.id.wifi_item).setIcon(R.drawable.ic_wifi_on)
-        else nav_view.menu.findItem(R.id.wifi_item).setIcon(R.drawable.ic_wifi_off)
+            nav_view.menu.findItem(R.id.wifi_item).isEnabled = true
+            wifi_switch.isEnabled = true
+            if(wifiBoolean) nav_view.menu.findItem(R.id.wifi_item).setIcon(R.drawable.ic_wifi_on)
+            else nav_view.menu.findItem(R.id.wifi_item).setIcon(R.drawable.ic_wifi_off)
+        } else {
+            umtsBoolean = false
+            nav_view.menu.findItem(R.id.umts_item).isEnabled = false
+            umts_switch.isChecked = false
+            umts_switch.isEnabled = false
+
+            lteBoolean = false
+            nav_view.menu.findItem(R.id.lte_item).isEnabled = false
+            lte_switch.isChecked = false
+            lte_switch.isEnabled = false
+
+            wifiBoolean = false
+            nav_view.menu.findItem(R.id.wifi_item).isEnabled = false
+            wifi_switch.isChecked = false
+            wifi_switch.isEnabled = false
+        }
+
     }
 
     override fun onBackPressed() {
@@ -271,8 +289,19 @@ class MainActivity :
     }
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        if (startBoolean) menu.findItem(R.id.start_item)?.setIcon(R.drawable.ic_pause)
-        else menu.findItem(R.id.start_item)?.setIcon(R.drawable.ic_play)
+        if (locationPermission()) {
+            menu.findItem(R.id.start_item).isEnabled = true
+            menu.findItem(R.id.refresh_item).isEnabled = true
+            if (startBoolean) menu.findItem(R.id.start_item).setIcon(R.drawable.ic_pause)
+            else menu.findItem(R.id.start_item).setIcon(R.drawable.ic_play_enabled)
+        } else {
+            startBoolean = false
+            menu.findItem(R.id.start_item).setIcon(R.drawable.ic_play_disabled)
+            menu.findItem(R.id.start_item).isEnabled = false
+
+            menu.findItem(R.id.refresh_item).setIcon(R.drawable.ic_refresh_disabled)
+            menu.findItem(R.id.refresh_item).isEnabled = false
+        }
         updateIcons()
         return true
     }
@@ -283,7 +312,7 @@ class MainActivity :
                 startBoolean = !startBoolean
                 invalidateOptionsMenu()
             }
-            R.id.refresh -> {
+            R.id.refresh_item -> {
                 val alert = AlertDialog.Builder(this)
                 alert.setMessage(R.string.alert_dialog_message)
                         .setTitle(R.string.alert_dialog_title)

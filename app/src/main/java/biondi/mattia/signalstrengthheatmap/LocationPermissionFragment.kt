@@ -19,6 +19,7 @@ class LocationPermissionFragment: Fragment() {
 
     override fun onStart() {
         super.onStart()
+        activity.invalidateOptionsMenu()
         val button = locationPermissionRequestButton
         button.setOnClickListener { getLocationPermission() }
     }
@@ -44,5 +45,4 @@ class LocationPermissionFragment: Fragment() {
     private fun locationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(activity.applicationContext, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
-
 }
