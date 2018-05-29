@@ -5,24 +5,28 @@
     tools:showIn="navigation_view">
 
     <group>
-        <item
-            android:id="@+id/umts_item"
-            android:icon="@drawable/ic_cellular_off"
-            android:title="@string/umts"
-            android:checkable="false"
-            app:actionLayout="@layout/umts_switch_layout"/>
-        <item
-            android:id="@+id/lte_item"
-            android:icon="@drawable/ic_cellular_off"
-            android:title="@string/lte"
-            android:checkable="false"
-            app:actionLayout="@layout/lte_switch_layout"/>
-        <item
-            android:id="@+id/wifi_item"
-            android:icon="@drawable/ic_wifi_off"
-            android:title="@string/wifi"
-            android:checkable="false"
-            app:actionLayout="@layout/wifi_switch_layout"/>
+        <item android:title="@string/group_title">
+            <menu>
+                <item
+                    android:id="@+id/umts_item"
+                    android:icon="@drawable/ic_cellular_off"
+                    android:title="@string/umts"
+                    android:checkable="false"
+                    app:actionLayout="@layout/umts_switch_layout"/>
+                <item
+                    android:id="@+id/lte_item"
+                    android:icon="@drawable/ic_cellular_off"
+                    android:title="@string/lte"
+                    android:checkable="false"
+                    app:actionLayout="@layout/lte_switch_layout"/>
+                <item
+                    android:id="@+id/wifi_item"
+                    android:icon="@drawable/ic_wifi_off"
+                    android:title="@string/wifi"
+                    android:checkable="false"
+                    app:actionLayout="@layout/wifi_switch_layout"/>
+            </menu>
+        </item>
     </group>
 
     <group

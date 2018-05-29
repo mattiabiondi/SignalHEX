@@ -28,4 +28,5 @@
     <string name="location_permission_explain_2">LOCATION PERMISSION</string>
     <string name="location_permission_explain_3">to show you the map</string>
     <string name="location_permission_request">OK then,\nshow me the map</string>
+    <string name="group_title">Heatmaps to show</string>
 </resources>

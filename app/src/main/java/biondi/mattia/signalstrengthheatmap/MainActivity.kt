@@ -182,7 +182,7 @@ class MainActivity :
                             nameText1.text = getWifiName()
                             typeText1.text = getString(R.string.wifi)
                             intensity = getWifiIntensity()
-                            intensityText1.text = getString(R.string.intensity1, intensity + 1, PRECISION)
+                            intensityText1.text = getString(R.string.intensity1, intensity, PRECISION-1)
                             getQuality(intensity)
                         })
                     } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
@@ -191,7 +191,7 @@ class MainActivity :
                             val networkType = getNetworkType(networkInfo)
                             typeText1.text = networkType
                             intensity = getNetworkIntensity(networkType)
-                            intensityText1.text = getString(R.string.intensity1,  intensity + 1, PRECISION)
+                            intensityText1.text = getString(R.string.intensity1,  intensity, PRECISION-1)
                             getQuality(intensity)
                         })
                     }
@@ -217,12 +217,12 @@ class MainActivity :
                 runOnUiThread({
                     nameText1.text = getString(R.string.not_available)
                     typeText1.text = getString(R.string.not_available)
-                    intensityText1.text = getString(R.string.intensity1,  0 + 1, PRECISION)
+                    intensityText1.text = getString(R.string.intensity1,  0, PRECISION-1)
                     getQuality(0)
                 })
             }
         }
-    }
+    } //todo nel passaggio da rete mobile a wifi si perde!!!
 
     private fun startNetworkUpdates() {
         if (!requestingNetworkUpdates) {

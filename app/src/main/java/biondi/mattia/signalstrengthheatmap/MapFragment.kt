@@ -37,8 +37,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     // Booleana per mettere in pausa le richieste di posizione durante onPause()
     private var requestingLocationUpdates = false
 
-    // Posizione di default se non viene concessa l'autorizzazione ad utilizzare la posizione (DISI)
-    private val defaultLocation = LatLng(44.497264, 11.356047)
     private val defaultZoom: Float = 20f
 
     // La mappa
@@ -108,8 +106,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         updateLocationUI()
     }
 
-
-
     private fun getLocation() {
         // Ottiene la miglior e più recente posizione posizione del dispositivo, che può anche essere nulla nei casi in cui la posizione non sia disponibile
         try {
@@ -125,10 +121,10 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     private fun updateLocationUI() {
         map ?: return
-
         try {
             map?.isMyLocationEnabled = true
             map?.uiSettings?.isMyLocationButtonEnabled = true
+            map?.uiSettings?.isZoomControlsEnabled = true
 
         } catch (e: SecurityException) {
         }
