@@ -20,8 +20,11 @@ import kotlinx.android.synthetic.main.main_layout.*
 import kotlinx.android.synthetic.main.app_bar_layout.*
 import kotlinx.android.synthetic.main.content_layout.*
 import kotlinx.android.synthetic.main.lte_switch_layout.*
+import kotlinx.android.synthetic.main.lte_switch_layout.view.*
 import kotlinx.android.synthetic.main.umts_switch_layout.*
+import kotlinx.android.synthetic.main.umts_switch_layout.view.*
 import kotlinx.android.synthetic.main.wifi_switch_layout.*
+import kotlinx.android.synthetic.main.wifi_switch_layout.view.*
 
 class MainActivity :
         AppCompatActivity(),
@@ -241,36 +244,43 @@ class MainActivity :
     }
 
     private fun updateIcons() {
+        val umts_item = nav_view.menu.findItem(R.id.umts_item)
+        val lte_item = nav_view.menu.findItem(R.id.lte_item)
+        val wifi_item = nav_view.menu.findItem(R.id.wifi_item)
+
         if (locationPermission()) {
-            nav_view.menu.findItem(R.id.umts_item).isEnabled = true
-            umts_switch.isEnabled = true
-            if(umtsBoolean) nav_view.menu.findItem(R.id.umts_item).setIcon(R.drawable.ic_cellular_on)
-            else nav_view.menu.findItem(R.id.umts_item).setIcon(R.drawable.ic_cellular_off)
+            umts_item.isEnabled = true
+            umts_item.actionView.umts_switch.isEnabled = true
+            if(umtsBoolean) umts_item.setIcon(R.drawable.ic_cellular_on)
+            else umts_item.setIcon(R.drawable.ic_cellular_off)
 
-            nav_view.menu.findItem(R.id.lte_item).isEnabled = true
-            lte_switch.isEnabled = true
-            if(lteBoolean) nav_view.menu.findItem(R.id.lte_item).setIcon(R.drawable.ic_cellular_on)
-            else nav_view.menu.findItem(R.id.lte_item).setIcon(R.drawable.ic_cellular_off)
+            lte_item.isEnabled = true
+            lte_item.actionView.lte_switch.isEnabled = true
+            if(lteBoolean) lte_item.setIcon(R.drawable.ic_cellular_on)
+            else lte_item.setIcon(R.drawable.ic_cellular_off)
 
-            nav_view.menu.findItem(R.id.wifi_item).isEnabled = true
-            wifi_switch.isEnabled = true
-            if(wifiBoolean) nav_view.menu.findItem(R.id.wifi_item).setIcon(R.drawable.ic_wifi_on)
-            else nav_view.menu.findItem(R.id.wifi_item).setIcon(R.drawable.ic_wifi_off)
+            wifi_item.isEnabled = true
+            wifi_item.actionView.wifi_switch.isEnabled = true
+            if(wifiBoolean) wifi_item.setIcon(R.drawable.ic_wifi_on)
+            else wifi_item.setIcon(R.drawable.ic_wifi_off)
         } else {
             umtsBoolean = false
-            nav_view.menu.findItem(R.id.umts_item).isEnabled = false
-            umts_switch.isChecked = false
-            umts_switch.isEnabled = false
+            umts_item.setIcon(R.drawable.ic_cellular_off)
+            umts_item.isEnabled = false
+            umts_item.actionView.umts_switch.isChecked = false
+            umts_item.actionView.umts_switch.isEnabled = false
 
             lteBoolean = false
-            nav_view.menu.findItem(R.id.lte_item).isEnabled = false
-            lte_switch.isChecked = false
-            lte_switch.isEnabled = false
+            lte_item.setIcon(R.drawable.ic_cellular_off)
+            lte_item.isEnabled = false
+            lte_item.actionView.lte_switch.isChecked = false
+            lte_item.actionView.lte_switch.isEnabled = false
 
             wifiBoolean = false
-            nav_view.menu.findItem(R.id.wifi_item).isEnabled = false
-            wifi_switch.isChecked = false
-            wifi_switch.isEnabled = false
+            wifi_item.setIcon(R.drawable.ic_wifi_off)
+            wifi_item.isEnabled = false
+            wifi_item.actionView.wifi_switch.isChecked = false
+            wifi_item.actionView.wifi_switch.isEnabled = false
         }
 
     }

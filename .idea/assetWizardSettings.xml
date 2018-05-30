@@ -23,7 +23,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/snap/android-studio/47/android-studio/plugins/android/lib/android.jar!/images/material_design_icons/navigation/ic_refresh_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/snap/android-studio/47/android-studio/plugins/android/lib/android.jar!/images/material_design_icons/device/ic_signal_wifi_off_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -35,7 +35,7 @@
                           <map>
                             <entry key="color" value="ffffff" />
                             <entry key="opacityPercent" value="30" />
-                            <entry key="outputName" value="ic_refresh_disabled" />
+                            <entry key="outputName" value="ic_wifi_off1" />
                             <entry key="sourceFile" value="$USER_HOME$" />
                           </map>
                         </option>
