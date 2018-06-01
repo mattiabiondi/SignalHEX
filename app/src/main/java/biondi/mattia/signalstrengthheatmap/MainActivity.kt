@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.*
 import android.net.wifi.WifiManager
-import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.v4.content.ContextCompat
@@ -57,6 +56,8 @@ class MainActivity :
     var wifiList = mutableListOf<WeightedLatLng>()
 
     val PRECISION = 5
+
+    var networkIntensity = 0 // TODO da migliorare dai non variabile globale
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -180,13 +181,14 @@ class MainActivity :
             private fun networkChanged(network: Network) {
                 val networkCapabilities = connectivityManager!!.getNetworkCapabilities(network)
                 val networkInfo = connectivityManager!!.getNetworkInfo(network)
+                var intensity: Int
 
                 if (networkInfo.isConnectedOrConnecting) {
                     if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
                         runOnUiThread({
                             nameText1.text = getWifiName()
                             typeText1.text = getString(R.string.wifi)
-                            val intensity = getWifiIntensity()
+                            intensity = getWifiIntensity()
                             intensityText1.text = getString(R.string.intensity1, intensity, PRECISION-1)
                             getQuality(intensity)
                         })
@@ -194,6 +196,9 @@ class MainActivity :
                         runOnUiThread({
                             nameText1.text = getCarrierName()
                             typeText1.text = getNetworkType()
+                            intensity = networkIntensity
+                            intensityText1.text = getString(R.string.intensity1,  intensity, PRECISION-1)
+                            getQuality(intensity)
                         })
                     }
                 } else {
@@ -391,9 +396,7 @@ class MainActivity :
     private fun phoneStateListener() {
         phoneStateListener = object : PhoneStateListener() {
             override fun onSignalStrengthsChanged(signalStrength: SignalStrength) {
-                val intensity = signalStrength.level
-                intensityText1.text = getString(R.string.intensity1,  intensity, PRECISION-1)
-                getQuality(intensity)
+                networkIntensity = signalStrength.level
             }
         }
     }
