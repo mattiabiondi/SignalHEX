@@ -2,8 +2,10 @@ package biondi.mattia.signalstrengthheatmap
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.*
 import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.v4.content.ContextCompat
@@ -34,9 +36,9 @@ class MainActivity :
     private var connectivityManager: ConnectivityManager? = null
     private lateinit var wifiManager: WifiManager
     private lateinit var telephonyManager: TelephonyManager
+    private lateinit var phoneStateListener: PhoneStateListener
 
     private lateinit var networkRequest: NetworkRequest
-
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
 
     private var requestingNetworkUpdates = false
@@ -76,6 +78,7 @@ class MainActivity :
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        phoneStateListener()
         createNetworkRequest()
         createNetworkCallback()
     }
@@ -177,28 +180,23 @@ class MainActivity :
             private fun networkChanged(network: Network) {
                 val networkCapabilities = connectivityManager!!.getNetworkCapabilities(network)
                 val networkInfo = connectivityManager!!.getNetworkInfo(network)
-                var intensity: Int
 
-                if (networkInfo.isConnected) {
+                if (networkInfo.isConnectedOrConnecting) {
                     if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
                         runOnUiThread({
                             nameText1.text = getWifiName()
                             typeText1.text = getString(R.string.wifi)
-                            intensity = getWifiIntensity()
+                            val intensity = getWifiIntensity()
                             intensityText1.text = getString(R.string.intensity1, intensity, PRECISION-1)
                             getQuality(intensity)
                         })
                     } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
                         runOnUiThread({
                             nameText1.text = getCarrierName()
-                            val networkType = getNetworkType(networkInfo)
-                            typeText1.text = networkType
-                            intensity = getNetworkIntensity(networkType)
-                            intensityText1.text = getString(R.string.intensity1,  intensity, PRECISION-1)
-                            getQuality(intensity)
+                            typeText1.text = getNetworkType()
                         })
                     }
-                } else if (!networkInfo.isConnected) {
+                } else {
                     runOnUiThread({
                         nameText1.text = getString(R.string.not_connected)
                         typeText1.text = getString(R.string.not_connected)
@@ -234,6 +232,11 @@ class MainActivity :
                     networkRequest,
                     networkCallback)
         }
+
+        telephonyManager.listen(
+                phoneStateListener,
+                PhoneStateListener.LISTEN_SIGNAL_STRENGTHS
+        )
     }
 
     private fun stopNetworkUpdates() {
@@ -241,6 +244,8 @@ class MainActivity :
             requestingNetworkUpdates = false
             connectivityManager?.unregisterNetworkCallback(networkCallback)
         }
+
+        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE)
     }
 
     private fun updateIcons() {
@@ -383,12 +388,22 @@ class MainActivity :
         return intensity
     }
 
+    private fun phoneStateListener() {
+        phoneStateListener = object : PhoneStateListener() {
+            override fun onSignalStrengthsChanged(signalStrength: SignalStrength) {
+                val intensity = signalStrength.level
+                intensityText1.text = getString(R.string.intensity1,  intensity, PRECISION-1)
+                getQuality(intensity)
+            }
+        }
+    }
+
     private fun getCarrierName(): String {
         return telephonyManager.networkOperatorName
     }
 
-    private fun getNetworkType(networkInfo: NetworkInfo): String {
-        when (networkInfo.subtype) {
+    private fun getNetworkType(): String {
+        when (telephonyManager.networkType) {
             TelephonyManager.NETWORK_TYPE_GPRS,
             TelephonyManager.NETWORK_TYPE_EDGE,
             TelephonyManager.NETWORK_TYPE_CDMA,
@@ -412,26 +427,9 @@ class MainActivity :
         }
     }
 
-    private fun getNetworkIntensity(string: String): Int {
-        var intensity = 0
-        try {
-            val cellList = telephonyManager.allCellInfo
-            if (cellList != null && cellList.isNotEmpty()) {
-                val cellInfo = telephonyManager.allCellInfo[0]
-                when (string) {
-                    "2G" -> intensity = (cellInfo as CellInfoGsm).cellSignalStrength.level
-                    "3G" -> intensity = (cellInfo as CellInfoWcdma).cellSignalStrength.level
-                    "4G" -> intensity = (cellInfo as CellInfoLte).cellSignalStrength.level
-                }
-            }
-        } catch (e: SecurityException) {
-        }
-        return intensity
-    }
-
     private fun getQuality(int: Int) {
         lateinit var string: String
-        var color: Int = R.string.none
+        val color: Int
         when (int) {
             0 -> {
                 string = resources.getString(R.string.none)
@@ -452,6 +450,10 @@ class MainActivity :
             4 -> {
                 string = resources.getString(R.string.great)
                 color = ContextCompat.getColor(this, R.color.great)
+            }
+            else -> {
+                string = "-1"
+                color = Color.CYAN
             }
         }
         qualityText.text = string
