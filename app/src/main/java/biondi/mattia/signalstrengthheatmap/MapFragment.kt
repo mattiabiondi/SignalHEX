@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import biondi.mattia.signalstrengthheatmap.R.id.toolbar
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -42,12 +41,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     // La mappa
     private var map: GoogleMap? = null
 
-    // Chiavi per memorizzare gli stati dell'activity
-    private val REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key"
-    private val KEY_LOCATION = "location"
-
-    private val START_KEY = "start"
-
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater!!.inflate(R.layout.map_layout, container, false)
     }
@@ -80,12 +73,13 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     override fun onPause() {
         super.onPause()
         stopLocationUpdates()
-    } //todo metti a posto stati activity durante on pause e mostra i pulsanti solo nella mappa
+    }
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
         outState?.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, requestingLocationUpdates)
-        outState?.putParcelable(KEY_LOCATION, currentLocation)
+        outState?.putParcelable(CURRENT_LOCATION_KEY, currentLocation)
+        outState?.putParcelable(PREVIOUS_LOCATION_KEY, previousLocation)
         outState?.putBoolean(START_KEY, startBoolean)
     }
 
@@ -93,7 +87,8 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         super.onActivityCreated(savedInstanceState)
         if (savedInstanceState != null) {
             requestingLocationUpdates = savedInstanceState.getBoolean(REQUESTING_LOCATION_UPDATES_KEY)
-            currentLocation = savedInstanceState.getParcelable(KEY_LOCATION)
+            currentLocation = savedInstanceState.getParcelable(CURRENT_LOCATION_KEY)
+            previousLocation = savedInstanceState.getParcelable(PREVIOUS_LOCATION_KEY)
             startBoolean = savedInstanceState.getBoolean(START_KEY)
         }
     }

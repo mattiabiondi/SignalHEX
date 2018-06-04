@@ -42,22 +42,19 @@ class MainActivity :
 
     private var requestingNetworkUpdates = false
 
+    private var networkIntensity = 0 // TODO evita variabile globale
+
     // Booleani che controllano quale mappa visualizzare
     private var umtsBoolean = false
-    private val UMTS_BOOLEAN_KEY = "umts-boolean"
     private var lteBoolean = false
-    private val LTE_BOOLEAN_KEY = "lte-boolean"
     private var wifiBoolean = false
-    private val WIFI_BOOLEAN_KEY = "wifi-boolean"
 
     // Lista delle coordinate ottenute dal dispositivo
     var umtsList = mutableListOf<WeightedLatLng>()
     var lteList = mutableListOf<WeightedLatLng>()
     var wifiList = mutableListOf<WeightedLatLng>()
 
-    val PRECISION = 5
-
-    var networkIntensity = 0 // TODO da migliorare dai non variabile globale
+    private val PRECISION = 5
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,7 +76,7 @@ class MainActivity :
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        phoneStateListener()
+        createPhoneStateListener()
         createNetworkRequest()
         createNetworkCallback()
     }
@@ -170,7 +167,6 @@ class MainActivity :
 
             // Indica che perderemo la connessione tra maxMsToLive millisecondi
             override fun onLosing(network: Network, maxMsToLive: Int) {
-                networkLosing(maxMsToLive)
             }
 
             // Indica che abbiamo perso la rete
@@ -183,7 +179,7 @@ class MainActivity :
                 val networkInfo = connectivityManager!!.getNetworkInfo(network)
                 var intensity: Int
 
-                if (networkInfo.isConnectedOrConnecting) {
+                if (networkInfo != null && networkInfo.isConnected) {
                     if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
                         runOnUiThread({
                             nameText1.text = getWifiName()
@@ -193,6 +189,8 @@ class MainActivity :
                             getQuality(intensity)
                         })
                     } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                        // Registra il listener qua per evitare di avere continui aggiornamenti se si utilizza solo il Wi-Fi
+                        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS)
                         runOnUiThread({
                             nameText1.text = getCarrierName()
                             typeText1.text = getNetworkType()
@@ -201,7 +199,15 @@ class MainActivity :
                             getQuality(intensity)
                         })
                     }
-                } else {
+                }
+            }
+
+            private fun networkLost() {
+                // La funzione viene chiamata riferendosi alla rete mobile quando ci si connette al Wi-Fi,
+                // mostrando informazioni sbagliate a schermo. Si assicura quindi che realmente non ci sia nessuna rete
+                // attiva
+                val networkInfo = connectivityManager!!.activeNetworkInfo
+                if (networkInfo==null || !networkInfo.isConnected) {
                     runOnUiThread({
                         nameText1.text = getString(R.string.not_connected)
                         typeText1.text = getString(R.string.not_connected)
@@ -210,25 +216,8 @@ class MainActivity :
                     })
                 }
             }
-
-            //todo testala
-            private fun networkLosing(int: Int) {
-                runOnUiThread({
-                    val seconds = int * 1000 // milliseconds to seconds
-                    intensityText1.text = resources.getQuantityString(R.plurals.losing_connection_in, seconds, seconds)
-                })
-            }
-
-            private fun networkLost() {
-                runOnUiThread({
-                    nameText1.text = getString(R.string.not_available)
-                    typeText1.text = getString(R.string.not_available)
-                    intensityText1.text = getString(R.string.intensity1,  0, PRECISION-1)
-                    getQuality(0)
-                })
-            }
         }
-    } //todo nel passaggio da rete mobile a wifi si perde!!!
+    }
 
     private fun startNetworkUpdates() {
         if (!requestingNetworkUpdates) {
@@ -237,20 +226,14 @@ class MainActivity :
                     networkRequest,
                     networkCallback)
         }
-
-        telephonyManager.listen(
-                phoneStateListener,
-                PhoneStateListener.LISTEN_SIGNAL_STRENGTHS
-        )
     }
 
     private fun stopNetworkUpdates() {
         if (requestingNetworkUpdates) {
             requestingNetworkUpdates = false
             connectivityManager?.unregisterNetworkCallback(networkCallback)
+            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE)
         }
-
-        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE)
     }
 
     private fun updateIcons() {
@@ -393,7 +376,7 @@ class MainActivity :
         return intensity
     }
 
-    private fun phoneStateListener() {
+    private fun createPhoneStateListener() {
         phoneStateListener = object : PhoneStateListener() {
             override fun onSignalStrengthsChanged(signalStrength: SignalStrength) {
                 networkIntensity = signalStrength.level
@@ -459,6 +442,7 @@ class MainActivity :
                 color = Color.CYAN
             }
         }
+
         qualityText.text = string
         qualityText.setTextColor(color)
     }
