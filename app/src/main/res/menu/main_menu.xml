@@ -8,6 +8,12 @@
         <item android:title="@string/group_title">
             <menu>
                 <item
+                    android:id="@+id/edge_item"
+                    android:icon="@drawable/ic_cellular_off"
+                    android:title="@string/edge"
+                    android:checkable="false"
+                    app:actionLayout="@layout/edge_switch_layout"/>
+                <item
                     android:id="@+id/umts_item"
                     android:icon="@drawable/ic_cellular_off"
                     android:title="@string/umts"

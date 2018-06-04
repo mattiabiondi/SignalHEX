@@ -12,6 +12,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapFragment
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.heatmaps.WeightedLatLng
 import kotlinx.android.synthetic.main.content_layout.*
 
 class MapFragment: Fragment(), OnMapReadyCallback {
@@ -142,8 +143,9 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                     previousLocation = currentLocation
                     currentLocation = location
                     activity.coordinatesText.text = (location.latitude).toString() + ", " + (location.longitude).toString()
-                    // Passa la posizione attuale alla funzione che si occupa di generare la Heatmap
-                    //if (startBoolean) checkLocation()
+
+                    //
+                    if (startBoolean) saveLocation()
                 }
             }
         }
@@ -170,12 +172,25 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
-    /*private fun checkLocation() {
-        if (currentLocation != previousLocation) { //todo da migliorare
-            if (wifiBoolean) {
+    private fun saveLocation() {
+        // Controlla che la posizione attuale sia diversa da quella precedente
+        // (Se si è fermi sul posto non continua a salvare le posizioni)
+        // TODO da migliorare, miglior controllo sulle coordinate entro un certo range
+        if (currentLocation != previousLocation) {
+            val location = WeightedLatLng(
+                    LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
+                    currentIntensity.toDouble())
 
+            when (currentNetwork) {
+                "2G" -> edgeList.add(location)
+                "3G" -> umtsList.add(location)
+                "4G" -> lteList.add(location)
+                "Wi-Fi" -> wifiList.add(location)
             }
         }
-    }*/
+    }
 
+    private fun addHeatmap() {
+        // todo polygon is the way
+    }
 }

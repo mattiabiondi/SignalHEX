@@ -16,10 +16,11 @@ import android.telephony.*
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
-import com.google.maps.android.heatmaps.WeightedLatLng
 import kotlinx.android.synthetic.main.main_layout.*
 import kotlinx.android.synthetic.main.app_bar_layout.*
 import kotlinx.android.synthetic.main.content_layout.*
+import kotlinx.android.synthetic.main.edge_switch_layout.*
+import kotlinx.android.synthetic.main.edge_switch_layout.view.*
 import kotlinx.android.synthetic.main.lte_switch_layout.*
 import kotlinx.android.synthetic.main.lte_switch_layout.view.*
 import kotlinx.android.synthetic.main.umts_switch_layout.*
@@ -29,7 +30,7 @@ import kotlinx.android.synthetic.main.wifi_switch_layout.view.*
 
 class MainActivity :
         AppCompatActivity(),
-        NavigationView.OnNavigationItemSelectedListener{
+        NavigationView.OnNavigationItemSelectedListener {
 
     // Costrutto del Connectivity Manager
     private var connectivityManager: ConnectivityManager? = null
@@ -43,16 +44,6 @@ class MainActivity :
     private var requestingNetworkUpdates = false
 
     private var networkIntensity = 0 // TODO evita variabile globale
-
-    // Booleani che controllano quale mappa visualizzare
-    private var umtsBoolean = false
-    private var lteBoolean = false
-    private var wifiBoolean = false
-
-    // Lista delle coordinate ottenute dal dispositivo
-    var umtsList = mutableListOf<WeightedLatLng>()
-    var lteList = mutableListOf<WeightedLatLng>()
-    var wifiList = mutableListOf<WeightedLatLng>()
 
     private val PRECISION = 5
 
@@ -93,6 +84,7 @@ class MainActivity :
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
+        outState?.putBoolean(EDGE_BOOLEAN_KEY, edgeBoolean)
         outState?.putBoolean(UMTS_BOOLEAN_KEY, umtsBoolean)
         outState?.putBoolean(LTE_BOOLEAN_KEY, lteBoolean)
         outState?.putBoolean(WIFI_BOOLEAN_KEY, wifiBoolean)
@@ -104,6 +96,7 @@ class MainActivity :
         super.onRestoreInstanceState(savedInstanceState)
         // Recupera lo stato delle variabili dall'istanza salvata
         if (savedInstanceState != null) {
+            edgeBoolean = savedInstanceState.getBoolean(EDGE_BOOLEAN_KEY)
             umtsBoolean = savedInstanceState.getBoolean(UMTS_BOOLEAN_KEY)
             lteBoolean = savedInstanceState.getBoolean(LTE_BOOLEAN_KEY)
             wifiBoolean = savedInstanceState.getBoolean(WIFI_BOOLEAN_KEY)
@@ -183,8 +176,10 @@ class MainActivity :
                     if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
                         runOnUiThread({
                             nameText1.text = getWifiName()
-                            typeText1.text = getString(R.string.wifi)
+                            currentNetwork = getString(R.string.wifi)
+                            typeText1.text = currentNetwork
                             intensity = getWifiIntensity()
+                            currentIntensity = intensity
                             intensityText1.text = getString(R.string.intensity1, intensity, PRECISION-1)
                             getQuality(intensity)
                         })
@@ -193,8 +188,10 @@ class MainActivity :
                         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS)
                         runOnUiThread({
                             nameText1.text = getCarrierName()
-                            typeText1.text = getNetworkType()
+                            currentNetwork = getNetworkType()
+                            typeText1.text = currentNetwork
                             intensity = networkIntensity
+                            currentIntensity = intensity
                             intensityText1.text = getString(R.string.intensity1,  intensity, PRECISION-1)
                             getQuality(intensity)
                         })
@@ -210,7 +207,9 @@ class MainActivity :
                 if (networkInfo==null || !networkInfo.isConnected) {
                     runOnUiThread({
                         nameText1.text = getString(R.string.not_connected)
+                        currentNetwork = getString(R.string.none)
                         typeText1.text = getString(R.string.not_connected)
+                        currentIntensity = 0
                         intensityText1.text = getString(R.string.not_connected)
                         getQuality(0)
                     })
@@ -237,11 +236,17 @@ class MainActivity :
     }
 
     private fun updateIcons() {
+        val edge_item = nav_view.menu.findItem(R.id.edge_item)
         val umts_item = nav_view.menu.findItem(R.id.umts_item)
         val lte_item = nav_view.menu.findItem(R.id.lte_item)
         val wifi_item = nav_view.menu.findItem(R.id.wifi_item)
 
         if (locationPermission()) {
+            edge_item.isEnabled = true
+            edge_item.actionView.edge_switch.isEnabled = true
+            if(edgeBoolean) edge_item.setIcon(R.drawable.ic_cellular_on)
+            else edge_item.setIcon(R.drawable.ic_cellular_off)
+
             umts_item.isEnabled = true
             umts_item.actionView.umts_switch.isEnabled = true
             if(umtsBoolean) umts_item.setIcon(R.drawable.ic_cellular_on)
@@ -257,6 +262,12 @@ class MainActivity :
             if(wifiBoolean) wifi_item.setIcon(R.drawable.ic_wifi_on)
             else wifi_item.setIcon(R.drawable.ic_wifi_off)
         } else {
+            edgeBoolean = false
+            edge_item.setIcon(R.drawable.ic_cellular_off)
+            edge_item.isEnabled = false
+            edge_item.actionView.edge_switch.isChecked = false
+            edge_item.actionView.edge_switch.isEnabled = false
+
             umtsBoolean = false
             umts_item.setIcon(R.drawable.ic_cellular_off)
             umts_item.isEnabled = false
@@ -323,8 +334,8 @@ class MainActivity :
                     _, _ ->
                     startBoolean = false
                     invalidateOptionsMenu()
-                    // Svuota la lista
-                    //wifiList.clear()
+                    // Svuota le liste
+                    clearLists()
                 })
                 alert.setNegativeButton(R.string.alert_dialog_negative, {
                     _, _ ->  //niente
@@ -339,17 +350,25 @@ class MainActivity :
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Aggiorna le icone del Navigation Drawer quando vengono selezionate
         when (item.itemId) {
+            R.id.edge_item -> {
+                edgeBoolean = !edgeBoolean
+                edge_switch.isChecked = edgeBoolean
+                edgeOverlay?.isVisible = edgeBoolean
+            }
             R.id.umts_item -> {
                 umtsBoolean = !umtsBoolean
                 umts_switch.isChecked = umtsBoolean
+                umtsOverlay?.isVisible = umtsBoolean
             }
             R.id.lte_item -> {
                 lteBoolean = !lteBoolean
                 lte_switch.isChecked = lteBoolean
+                lteOverlay?.isVisible = lteBoolean
             }
             R.id.wifi_item -> {
                 wifiBoolean = !wifiBoolean
                 wifi_switch.isChecked = wifiBoolean
+                wifiOverlay?.isVisible = wifiBoolean
             }
             R.id.settings -> {
                 // TODO: implementa impostazioni
@@ -357,7 +376,7 @@ class MainActivity :
         }
         invalidateOptionsMenu()
         // Chiude il Navigation Drawer
-        drawer_layout.closeDrawer(GravityCompat.START)
+        //drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }
 
@@ -447,5 +466,3 @@ class MainActivity :
         qualityText.setTextColor(color)
     }
 }
-
-//todo controlli is enabled sugli interruttori
