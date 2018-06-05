@@ -353,28 +353,25 @@ class MainActivity :
             R.id.edge_item -> {
                 edgeBoolean = !edgeBoolean
                 edge_switch.isChecked = edgeBoolean
-                edgeOverlay?.isVisible = edgeBoolean
             }
             R.id.umts_item -> {
                 umtsBoolean = !umtsBoolean
                 umts_switch.isChecked = umtsBoolean
-                umtsOverlay?.isVisible = umtsBoolean
             }
             R.id.lte_item -> {
                 lteBoolean = !lteBoolean
                 lte_switch.isChecked = lteBoolean
-                lteOverlay?.isVisible = lteBoolean
             }
             R.id.wifi_item -> {
                 wifiBoolean = !wifiBoolean
                 wifi_switch.isChecked = wifiBoolean
-                wifiOverlay?.isVisible = wifiBoolean
             }
             R.id.settings -> {
                 // TODO: implementa impostazioni
             }
         }
         invalidateOptionsMenu()
+        setIntensityList()
         // Chiude il Navigation Drawer
         //drawer_layout.closeDrawer(GravityCompat.START)
         return true

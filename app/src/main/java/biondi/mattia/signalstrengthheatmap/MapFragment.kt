@@ -1,6 +1,7 @@
 package biondi.mattia.signalstrengthheatmap
 
 import android.app.Fragment
+import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,6 +13,8 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapFragment
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Polygon
+import com.google.android.gms.maps.model.PolygonOptions
 import com.google.maps.android.heatmaps.WeightedLatLng
 import kotlinx.android.synthetic.main.content_layout.*
 
@@ -41,6 +44,9 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     // La mappa
     private var map: GoogleMap? = null
+
+    // I poligoni sulla mappa che rappresentano l'intensità di segnale
+    var polygon = arrayOfNulls<Polygon>(5)
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater!!.inflate(R.layout.map_layout, container, false)
@@ -177,20 +183,40 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         // (Se si è fermi sul posto non continua a salvare le posizioni)
         // TODO da migliorare, miglior controllo sulle coordinate entro un certo range
         if (currentLocation != previousLocation) {
-            val location = WeightedLatLng(
-                    LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
-                    currentIntensity.toDouble())
+            val location = LatLng(currentLocation!!.latitude, currentLocation!!.longitude)
 
             when (currentNetwork) {
-                "2G" -> edgeList.add(location)
-                "3G" -> umtsList.add(location)
-                "4G" -> lteList.add(location)
-                "Wi-Fi" -> wifiList.add(location)
+                "2G" -> edgeList[currentIntensity].add(location)
+                "3G" -> umtsList[currentIntensity].add(location)
+                "4G" -> lteList[currentIntensity].add(location)
+                "Wi-Fi" -> wifiList[currentIntensity].add(location)
             }
+
+            setIntensityList()
+            addHeatmap()
         }
     }
 
     private fun addHeatmap() {
-        // todo polygon is the way
+        for (i in 0..4) {
+            if (intensityList[i].size > 2) {
+                val color = when(i) {
+                    0 -> R.color.none
+                    1 -> R.color.poor
+                    2 -> R.color.moderate
+                    3 -> R.color.good
+                    4 -> R.color.great
+                    else -> Color.TRANSPARENT
+                }
+
+                polygon[i]?.remove()
+                polygon[i] = map!!.addPolygon(PolygonOptions()
+                        .zIndex(i.toFloat())
+                        .fillColor(color)
+                        .strokeWidth(0f)
+                        .addAll(intensityList[i]))
+            }
+        }
+
     }
 }
