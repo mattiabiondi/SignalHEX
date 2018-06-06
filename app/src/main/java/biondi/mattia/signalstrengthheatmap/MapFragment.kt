@@ -4,17 +4,17 @@ import android.app.Fragment
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapFragment
 import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Polygon
-import com.google.android.gms.maps.model.PolygonOptions
+import com.google.android.gms.maps.model.*
 import com.google.maps.android.heatmaps.WeightedLatLng
 import kotlinx.android.synthetic.main.content_layout.*
 
@@ -44,9 +44,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     // La mappa
     private var map: GoogleMap? = null
-
-    // I poligoni sulla mappa che rappresentano l'intensità di segnale
-    var polygon = arrayOfNulls<Polygon>(5)
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater!!.inflate(R.layout.map_layout, container, false)
@@ -150,7 +147,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                     currentLocation = location
                     activity.coordinatesText.text = (location.latitude).toString() + ", " + (location.longitude).toString()
 
-                    //
                     if (startBoolean) saveLocation()
                 }
             }
@@ -183,40 +179,60 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         // (Se si è fermi sul posto non continua a salvare le posizioni)
         // TODO da migliorare, miglior controllo sulle coordinate entro un certo range
         if (currentLocation != previousLocation) {
-            val location = LatLng(currentLocation!!.latitude, currentLocation!!.longitude)
+            val location = WeightedLatLng(
+                    LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
+                    currentIntensity.toDouble())
 
+            // todo dato che i point non corrispondono alle coordinate, probabilmente posso fare a meno di una WeightedLatLng
             when (currentNetwork) {
-                "2G" -> edgeList[currentIntensity].add(location)
-                "3G" -> umtsList[currentIntensity].add(location)
-                "4G" -> lteList[currentIntensity].add(location)
-                "Wi-Fi" -> wifiList[currentIntensity].add(location)
+                "2G" -> {
+                    edgeList.add(location)
+                    edgeCircle.add(addCircle(location, edgeBoolean))
+                }
+                "3G" -> {
+                    umtsList.add(location)
+                    umtsCircle.add(addCircle(location, umtsBoolean))
+                }
+                "4G" -> {
+                    lteList.add(location)
+                    lteCircle.add(addCircle(location, lteBoolean))
+                }
+                "Wi-Fi" -> {
+                    wifiList.add(location)
+                    wifiCircle.add(addCircle(location, wifiBoolean))
+                }
             }
-
-            setIntensityList()
-            addHeatmap()
         }
     }
 
-    private fun addHeatmap() {
-        for (i in 0..4) {
-            if (intensityList[i].size > 2) {
-                val color = when(i) {
-                    0 -> R.color.none
-                    1 -> R.color.poor
-                    2 -> R.color.moderate
-                    3 -> R.color.good
-                    4 -> R.color.great
-                    else -> Color.TRANSPARENT
-                }
+    private fun circleOptions(): CircleOptions {
+        return CircleOptions()
+                .clickable(false)
+                .radius(2.0)
+                .strokeColor(Color.TRANSPARENT)
+                .strokeWidth(0F)
+    }
 
-                polygon[i]?.remove()
-                polygon[i] = map!!.addPolygon(PolygonOptions()
-                        .zIndex(i.toFloat())
-                        .fillColor(color)
-                        .strokeWidth(0f)
-                        .addAll(intensityList[i]))
-            }
+    private fun addCircle(location: WeightedLatLng, boolean: Boolean): Circle {
+        val color = when(location.intensity.toInt()) {
+            0 -> ContextCompat.getColor(activity, R.color.none)
+            1 -> ContextCompat.getColor(activity, R.color.poor)
+            2 -> ContextCompat.getColor(activity, R.color.moderate)
+            3 -> ContextCompat.getColor(activity, R.color.good)
+            4 -> ContextCompat.getColor(activity, R.color.great)
+            else -> Color.TRANSPARENT
+            //todo trasparenza
         }
 
+        return map!!.addCircle(
+               circleOptions()
+                       .center(LatLng(currentLocation!!.latitude, currentLocation!!.longitude))
+                       .fillColor(color)
+                       .zIndex(location.intensity.toFloat())
+                       .visible(boolean))
+
+        //todo persistenza in onpause
     }
 }
+
+//TODO HEXAGON PATTERN

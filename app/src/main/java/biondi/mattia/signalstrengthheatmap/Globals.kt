@@ -1,6 +1,7 @@
 package biondi.mattia.signalstrengthheatmap
 
-import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Circle
+import com.google.maps.android.heatmaps.WeightedLatLng
 
 // Codice di richiesta
 const val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
@@ -18,69 +19,44 @@ var currentNetwork = R.string.none.toString()
 var currentIntensity = 0
 
 // Lista delle coordinate ottenute dal dispositivo
-var edgeList = arrayOf(
-        mutableListOf<LatLng>(),
-        mutableListOf(),
-        mutableListOf(),
-        mutableListOf(),
-        mutableListOf())
-var umtsList = arrayOf(
-        mutableListOf<LatLng>(),
-        mutableListOf(),
-        mutableListOf(),
-        mutableListOf(),
-        mutableListOf())
-var lteList = arrayOf(
-        mutableListOf<LatLng>(),
-        mutableListOf(),
-        mutableListOf(),
-        mutableListOf(),
-        mutableListOf())
-var wifiList = arrayOf(
-        mutableListOf<LatLng>(),
-        mutableListOf(),
-        mutableListOf(),
-        mutableListOf(),
-        mutableListOf())
+var edgeList = mutableListOf<WeightedLatLng>()
+var umtsList = mutableListOf<WeightedLatLng>()
+var lteList = mutableListOf<WeightedLatLng>()
+var wifiList = mutableListOf<WeightedLatLng>()
 
-var intensityList = arrayOf(
-        mutableListOf<LatLng>(),
-        mutableListOf(),
-        mutableListOf(),
-        mutableListOf(),
-        mutableListOf())
+// Lista dei cerchi disegnati a schermo
+var edgeCircle = mutableListOf<Circle>()
+var umtsCircle = mutableListOf<Circle>()
+var lteCircle = mutableListOf<Circle>()
+var wifiCircle = mutableListOf<Circle>()
 
-fun setIntensityList() {
-    for (i in 0..4) {
-        if (edgeBoolean)
-            if (!intensityList[i].containsAll(edgeList[i]))
-                intensityList[i].addAll(edgeList[i])
-            else intensityList[i].removeAll(edgeList[i])
+fun clearLists() {
+    edgeList.clear()
+    umtsList.clear()
+    lteList.clear()
+    wifiList.clear()
+    removeAllCircles()
+}
 
-        if (umtsBoolean)
-            if (!intensityList[i].containsAll(umtsList[i]))
-                intensityList[i].addAll(umtsList[i])
-            else intensityList[i].removeAll(umtsList[i])
-
-        if (lteBoolean)
-            if (!intensityList[i].containsAll(lteList[i]))
-                intensityList[i].addAll(lteList[i])
-            else intensityList[i].removeAll(lteList[i])
-
-        if (wifiBoolean)
-            if (!intensityList[i].containsAll(wifiList[i]))
-                intensityList[i].addAll(wifiList[i])
-            else intensityList[i].removeAll(wifiList[i])
+fun setVisibility(list: MutableList<Circle>, boolean: Boolean) {
+    for (i in 0 until list.size) {
+        list[i].isVisible = boolean
     }
 }
 
-fun clearLists() {
-    for (i in 0..4) {
-        edgeList[i].clear()
-        umtsList[i].clear()
-        lteList[i].clear()
-        wifiList[i].clear()
-        intensityList[i]
+fun removeAllCircles() {
+    for (i in 0 until 4) {
+        val list = when (i) {
+            0 -> edgeCircle
+            1 -> umtsCircle
+            2 -> lteCircle
+            3 -> wifiCircle
+            else -> null
+        }
+
+        for (k in 0 until list!!.size) {
+            list[k].remove()
+        }
     }
 }
 
