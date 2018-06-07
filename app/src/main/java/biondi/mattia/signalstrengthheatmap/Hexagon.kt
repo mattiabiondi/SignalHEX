@@ -62,7 +62,7 @@ val layout_flat = Orientation(3.0 / 2.0, 0.0, sqrt(3.0) / 2.0, sqrt(3.0),
                                 2.0 / 3.0, 0.0, -1.0 / 3.0, sqrt(3.0) / 3.0,
                                 0.0)
 
-class Layout(val orientation: Orientation, val size: Point, val origin: Point) {
+class HexagonLayout(val orientation: Orientation, val size: Point, val origin: Point) {
 
     fun hexagonToPixel(hex: Hexagon): Point {
         val x = (orientation.f0 * hex.x + orientation.f1 * hex.y) * size.x

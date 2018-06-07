@@ -8,7 +8,6 @@ import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -180,31 +179,36 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         // (Se si è fermi sul posto non continua a salvare le posizioni)
         // TODO da migliorare, miglior controllo sulle coordinate entro un certo range
         if (currentLocation != previousLocation) {
-            val location = WeightedLatLng(
+            val location = LatLng(currentLocation!!.latitude, currentLocation!!.longitude)
+            val intensity = currentIntensity
+
+            /*val location = WeightedLatLng(
                     LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
-                    currentIntensity.toDouble())
+                    currentIntensity.toDouble())*/
 
             // todo dato che i point non corrispondono alle coordinate, probabilmente posso fare a meno di una WeightedLatLng
             when (currentNetwork) {
                 "2G" -> {
-                    edgeList.add(location)
+                    //edgeList.add(location)
                     //edgeCircle.add(addCircle(location, edgeBoolean))
                 }
                 "3G" -> {
-                    umtsList.add(location)
+                    //umtsList.add(location)
                     //umtsCircle.add(addCircle(location, umtsBoolean))
                 }
                 "4G" -> {
-                    lteList.add(location)
+                    //lteList.add(location)
                     //lteCircle.add(addCircle(location, lteBoolean))
                 }
                 "Wi-Fi" -> {
-                    wifiList.add(location)
+                    //wifiList.add(location)
                     //wifiCircle.add(addCircle(location, wifiBoolean))
+                    wifiHexagon.add(addHexagon(location, intensity))
 
+                    /*
                     /**aggiunge un esagono per ogni coordinata*/
 
-                    val points: List<LatLng> = Layout(
+                    val points: List<LatLng> = HexagonLayout(
                             layout_pointy,
                             Point(0.00035, 0.0005), // Size
                             Point(currentLocation!!.latitude, currentLocation!!.longitude)) // Origin
@@ -220,7 +224,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                         var j = (currentLocation!!.longitude - 0.005)
                         while (j <= (currentLocation!!.latitude + 0.005)) {
 
-                            val points: List<LatLng> = Layout(
+                            val points: List<LatLng> = HexagonLayout(
                                     layout_pointy,
                                     Point(0.00035, 0.0005), // Size
                                     Point(i, j)) // Origin
@@ -234,7 +238,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                         }
                         i += 0.5
                     }*/
-
+*/
                 }
             }
         }
@@ -268,6 +272,32 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
         //todo persistenza in onpause
     }
+
+    private fun addHexagon(location: LatLng, intensity: Int): Polygon {
+        val orientation = layout_pointy
+        val size = Point(0.7, 1.0) // TODO controlla che sia regolare
+        val scale = 0.00002
+        val finalSize = Point(size.x * scale, size.y * scale)
+        val origin = Point(location.latitude, location.longitude)
+        val hexagonLayout = HexagonLayout(orientation, finalSize, origin)
+        val points = hexagonLayout.polygonCorners(Hexagon(0.0, 0.0))
+
+        val color = when(intensity) {
+            0 -> ContextCompat.getColor(activity, R.color.none)
+            1 -> ContextCompat.getColor(activity, R.color.poor)
+            2 -> ContextCompat.getColor(activity, R.color.moderate)
+            3 -> ContextCompat.getColor(activity, R.color.good)
+            4 -> ContextCompat.getColor(activity, R.color.great)
+            else -> Color.TRANSPARENT
+        }
+
+        val hexagon = PolygonOptions()
+                .addAll(points)
+                .fillColor(color)
+                .strokeWidth(5F)
+                .zIndex(intensity.toFloat())
+
+        return map!!.addPolygon(hexagon)
+    }
 }
 
-//TODO HEXAGON PATTERN

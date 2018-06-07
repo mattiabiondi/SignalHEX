@@ -1,6 +1,7 @@
 package biondi.mattia.signalstrengthheatmap
 
 import com.google.android.gms.maps.model.Circle
+import com.google.android.gms.maps.model.Polygon
 import com.google.maps.android.heatmaps.WeightedLatLng
 
 // Codice di richiesta
@@ -29,6 +30,9 @@ var edgeCircle = mutableListOf<Circle>()
 var umtsCircle = mutableListOf<Circle>()
 var lteCircle = mutableListOf<Circle>()
 var wifiCircle = mutableListOf<Circle>()
+
+// Lista degli esagoni disegnati sulla mappa
+var wifiHexagon = mutableListOf<Polygon>()
 
 fun clearLists() {
     edgeList.clear()

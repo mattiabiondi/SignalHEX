@@ -13,7 +13,7 @@ import kotlinx.android.synthetic.main.location_permission_layout.*
 class LocationPermissionFragment: Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        // Riempie la View con UMTS Layout
+        // Riempie la View con UMTS HexagonLayout
         return inflater!!.inflate(R.layout.location_permission_layout, container, false)
     }
 
