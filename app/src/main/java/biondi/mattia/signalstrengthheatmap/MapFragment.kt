@@ -15,6 +15,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapFragment
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.*
+import com.google.maps.android.geometry.Point
 import com.google.maps.android.heatmaps.WeightedLatLng
 import kotlinx.android.synthetic.main.content_layout.*
 
@@ -187,19 +188,53 @@ class MapFragment: Fragment(), OnMapReadyCallback {
             when (currentNetwork) {
                 "2G" -> {
                     edgeList.add(location)
-                    edgeCircle.add(addCircle(location, edgeBoolean))
+                    //edgeCircle.add(addCircle(location, edgeBoolean))
                 }
                 "3G" -> {
                     umtsList.add(location)
-                    umtsCircle.add(addCircle(location, umtsBoolean))
+                    //umtsCircle.add(addCircle(location, umtsBoolean))
                 }
                 "4G" -> {
                     lteList.add(location)
-                    lteCircle.add(addCircle(location, lteBoolean))
+                    //lteCircle.add(addCircle(location, lteBoolean))
                 }
                 "Wi-Fi" -> {
                     wifiList.add(location)
-                    wifiCircle.add(addCircle(location, wifiBoolean))
+                    //wifiCircle.add(addCircle(location, wifiBoolean))
+
+                    /**aggiunge un esagono per ogni coordinata*/
+
+                    val points: List<LatLng> = Layout(
+                            layout_pointy,
+                            Point(0.00035, 0.0005), // Size
+                            Point(currentLocation!!.latitude, currentLocation!!.longitude)) // Origin
+                            .polygonCorners(Hexagon(0.0, 0.0))
+
+                    map!!.addPolygon(PolygonOptions()
+                            .addAll(points)
+                            .fillColor(Color.CYAN))
+
+                    /* aggiunge più esagoni ma lagga ovviamente
+                    var i = (currentLocation!!.latitude - 0.0005)
+                    while (i <= (currentLocation!!.latitude + 0.005)) {
+                        var j = (currentLocation!!.longitude - 0.005)
+                        while (j <= (currentLocation!!.latitude + 0.005)) {
+
+                            val points: List<LatLng> = Layout(
+                                    layout_pointy,
+                                    Point(0.00035, 0.0005), // Size
+                                    Point(i, j)) // Origin
+                                    .polygonCorners(Hexagon(0.0, 0.0))
+
+                            map!!.addPolygon(PolygonOptions()
+                                    .addAll(points)
+                                    .fillColor(Color.CYAN))
+
+                            j += 0.5
+                        }
+                        i += 0.5
+                    }*/
+
                 }
             }
         }
