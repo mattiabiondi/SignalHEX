@@ -353,22 +353,22 @@ class MainActivity :
             R.id.edge_item -> {
                 edgeBoolean = !edgeBoolean
                 edge_switch.isChecked = edgeBoolean
-                setVisibility(edgeCircle, edgeBoolean)
+                setVisibility(edgeHexagon, edgeBoolean)
             }
             R.id.umts_item -> {
                 umtsBoolean = !umtsBoolean
                 umts_switch.isChecked = umtsBoolean
-                setVisibility(umtsCircle, umtsBoolean)
+                setVisibility(umtsHexagon, umtsBoolean)
             }
             R.id.lte_item -> {
                 lteBoolean = !lteBoolean
                 lte_switch.isChecked = lteBoolean
-                setVisibility(lteCircle, lteBoolean)
+                setVisibility(lteHexagon, lteBoolean)
             }
             R.id.wifi_item -> {
                 wifiBoolean = !wifiBoolean
                 wifi_switch.isChecked = wifiBoolean
-                setVisibility(wifiCircle, wifiBoolean)
+                setVisibility(wifiHexagon, wifiBoolean)
             }
             R.id.settings -> {
                 // TODO: implementa impostazioni

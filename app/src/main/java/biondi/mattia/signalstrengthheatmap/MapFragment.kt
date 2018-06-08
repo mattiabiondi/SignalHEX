@@ -191,54 +191,22 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                 "2G" -> {
                     //edgeList.add(location)
                     //edgeCircle.add(addCircle(location, edgeBoolean))
+                    edgeHexagon.add(addHexagon(location, intensity, edgeBoolean))
                 }
                 "3G" -> {
                     //umtsList.add(location)
                     //umtsCircle.add(addCircle(location, umtsBoolean))
+                    umtsHexagon.add(addHexagon(location, intensity, umtsBoolean))
                 }
                 "4G" -> {
                     //lteList.add(location)
                     //lteCircle.add(addCircle(location, lteBoolean))
+                    lteHexagon.add(addHexagon(location, intensity, lteBoolean))
                 }
                 "Wi-Fi" -> {
                     //wifiList.add(location)
                     //wifiCircle.add(addCircle(location, wifiBoolean))
-                    wifiHexagon.add(addHexagon(location, intensity))
-
-                    /*
-                    /**aggiunge un esagono per ogni coordinata*/
-
-                    val points: List<LatLng> = HexagonLayout(
-                            layout_pointy,
-                            Point(0.00035, 0.0005), // Size
-                            Point(currentLocation!!.latitude, currentLocation!!.longitude)) // Origin
-                            .polygonCorners(Hexagon(0.0, 0.0))
-
-                    map!!.addPolygon(PolygonOptions()
-                            .addAll(points)
-                            .fillColor(Color.CYAN))
-
-                    /* aggiunge più esagoni ma lagga ovviamente
-                    var i = (currentLocation!!.latitude - 0.0005)
-                    while (i <= (currentLocation!!.latitude + 0.005)) {
-                        var j = (currentLocation!!.longitude - 0.005)
-                        while (j <= (currentLocation!!.latitude + 0.005)) {
-
-                            val points: List<LatLng> = HexagonLayout(
-                                    layout_pointy,
-                                    Point(0.00035, 0.0005), // Size
-                                    Point(i, j)) // Origin
-                                    .polygonCorners(Hexagon(0.0, 0.0))
-
-                            map!!.addPolygon(PolygonOptions()
-                                    .addAll(points)
-                                    .fillColor(Color.CYAN))
-
-                            j += 0.5
-                        }
-                        i += 0.5
-                    }*/
-*/
+                    wifiHexagon.add(addHexagon(location, intensity, wifiBoolean))
                 }
             }
         }
@@ -273,14 +241,14 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         //todo persistenza in onpause
     }
 
-    private fun addHexagon(location: LatLng, intensity: Int): Polygon {
+    var q = 1.0
+    var r = 0.0
+    private fun addHexagon(location: LatLng, intensity: Int, boolean: Boolean): Polygon {
         val orientation = layout_pointy
         val size = Point(0.7, 1.0) // TODO controlla che sia regolare
-        val scale = 0.00002
+        val scale = 0.000015
         val finalSize = Point(size.x * scale, size.y * scale)
-        val origin = Point(location.latitude, location.longitude)
-        val hexagonLayout = HexagonLayout(orientation, finalSize, origin)
-        val points = hexagonLayout.polygonCorners(Hexagon(0.0, 0.0))
+        lateinit var points: List<LatLng>
 
         val color = when(intensity) {
             0 -> ContextCompat.getColor(activity, R.color.none)
@@ -291,13 +259,23 @@ class MapFragment: Fragment(), OnMapReadyCallback {
             else -> Color.TRANSPARENT
         }
 
+        if (firstHexagon == null) {
+            val origin = Point(location.latitude, location.longitude)
+            firstHexagon = HexagonLayout(orientation, finalSize, origin)
+            points = firstHexagon!!.polygonCorners(Hexagon(0.0, 0.0))
+        } else {
+            // todo attualmente dopo aver resettato q ed r restano comunque uguali
+            points = firstHexagon!!.polygonCorners(Hexagon(q, r)); q++
+        }
+
         val hexagon = PolygonOptions()
                 .addAll(points)
                 .fillColor(color)
-                .strokeWidth(5F)
-                .zIndex(intensity.toFloat())
+                .strokeWidth(2F)
+                .visible(boolean)
 
         return map!!.addPolygon(hexagon)
+
     }
 }
 

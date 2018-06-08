@@ -32,17 +32,28 @@ var lteCircle = mutableListOf<Circle>()
 var wifiCircle = mutableListOf<Circle>()
 
 // Lista degli esagoni disegnati sulla mappa
+var edgeHexagon = mutableListOf<Polygon>()
+var umtsHexagon = mutableListOf<Polygon>()
+var lteHexagon = mutableListOf<Polygon>()
 var wifiHexagon = mutableListOf<Polygon>()
+
 
 fun clearLists() {
     edgeList.clear()
     umtsList.clear()
     lteList.clear()
     wifiList.clear()
-    removeAllCircles()
+    //removeAllCircles()
+    removeAllHexagons()
 }
 
-fun setVisibility(list: MutableList<Circle>, boolean: Boolean) {
+/*fun setVisibility(list: MutableList<Circle>, boolean: Boolean) {
+    for (i in 0 until list.size) {
+        list[i].isVisible = boolean
+    }
+}*/
+
+fun setVisibility(list: MutableList<Polygon>, boolean: Boolean) {
     for (i in 0 until list.size) {
         list[i].isVisible = boolean
     }
@@ -62,6 +73,23 @@ fun removeAllCircles() {
             list[k].remove()
         }
     }
+}
+
+fun removeAllHexagons() {
+    for (i in 0 until 4) {
+        val list = when (i) {
+            0 -> edgeHexagon
+            1 -> umtsHexagon
+            2 -> lteHexagon
+            3 -> wifiHexagon
+            else -> null
+        }
+
+        for (k in 0 until list!!.size) {
+            list[k].remove()
+        }
+    }
+    firstHexagon = null
 }
 
 // Chiavi per memorizzare lo stato dell'activity
