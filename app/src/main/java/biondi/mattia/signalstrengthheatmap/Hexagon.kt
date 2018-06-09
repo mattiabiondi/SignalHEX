@@ -94,6 +94,35 @@ class HexagonLayout(val orientation: Orientation, val size: Point, val origin: P
         }
         return corners
     }
+
+    fun hexagonRound(origin: Point): Hexagon {
+        val hexagon = pixelToHexagon(origin)
+
+        var rx = round(hexagon.x)
+        var ry = round(hexagon.y)
+        var rz = round(hexagon.z)
+
+        /*var rx = truncate(hexagon.x)
+        var ry = truncate(hexagon.y)
+        var rz = truncate(hexagon.z)*/
+
+        val xDiff = abs(rx - hexagon.x)
+        val yDiff = abs(ry - hexagon.y)
+        val zDiff = abs(rz - hexagon.z)
+
+        if ((xDiff > yDiff) && (xDiff > zDiff))
+            rx = -ry-rz
+        else if (yDiff > zDiff)
+            ry = -rx-rz
+
+        /*if ((xDiff > yDiff) && (xDiff > zDiff))
+            rx = -ry-rz
+        else if (yDiff > zDiff)
+            ry = -rx-rz*/
+
+        return Hexagon(rx, ry)
+
+    }
 }
 
 

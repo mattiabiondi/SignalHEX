@@ -8,6 +8,7 @@ import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -17,6 +18,7 @@ import com.google.android.gms.maps.model.*
 import com.google.maps.android.geometry.Point
 import com.google.maps.android.heatmaps.WeightedLatLng
 import kotlinx.android.synthetic.main.content_layout.*
+import kotlin.math.round
 
 class MapFragment: Fragment(), OnMapReadyCallback {
 
@@ -182,11 +184,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
             val location = LatLng(currentLocation!!.latitude, currentLocation!!.longitude)
             val intensity = currentIntensity
 
-            /*val location = WeightedLatLng(
-                    LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
-                    currentIntensity.toDouble())*/
-
-            // todo dato che i point non corrispondono alle coordinate, probabilmente posso fare a meno di una WeightedLatLng
             when (currentNetwork) {
                 "2G" -> {
                     //edgeList.add(location)
@@ -241,14 +238,25 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         //todo persistenza in onpause
     }
 
-    var q = 1.0
-    var r = 0.0
     private fun addHexagon(location: LatLng, intensity: Int, boolean: Boolean): Polygon {
         val orientation = layout_pointy
         val size = Point(0.7, 1.0) // TODO controlla che sia regolare
         val scale = 0.000015
         val finalSize = Point(size.x * scale, size.y * scale)
+        val origin = Point(location.latitude, location.longitude)
+
         lateinit var points: List<LatLng>
+        lateinit var hexagon: Hexagon
+        if (firstHexagon == null) {
+            firstHexagon = HexagonLayout(orientation, finalSize, origin)
+            //val a = firstHexagon!!.pixelToHexagon(origin)
+            //hexagon = Hexagon((a.x), (a.y))
+            hexagon = Hexagon(0.0, 0.0)
+        } else {
+            hexagon = firstHexagon!!.hexagonRound(origin)
+            Toast.makeText(activity, hexagon.x.toString() +", "+ hexagon.y.toString(), Toast.LENGTH_SHORT).show()
+        }
+        points = firstHexagon!!.polygonCorners(hexagon)
 
         val color = when(intensity) {
             0 -> ContextCompat.getColor(activity, R.color.none)
@@ -259,22 +267,13 @@ class MapFragment: Fragment(), OnMapReadyCallback {
             else -> Color.TRANSPARENT
         }
 
-        if (firstHexagon == null) {
-            val origin = Point(location.latitude, location.longitude)
-            firstHexagon = HexagonLayout(orientation, finalSize, origin)
-            points = firstHexagon!!.polygonCorners(Hexagon(0.0, 0.0))
-        } else {
-            // todo attualmente dopo aver resettato q ed r restano comunque uguali
-            points = firstHexagon!!.polygonCorners(Hexagon(q, r)); q++
-        }
-
-        val hexagon = PolygonOptions()
+        val polygon = PolygonOptions()
                 .addAll(points)
                 .fillColor(color)
                 .strokeWidth(2F)
                 .visible(boolean)
 
-        return map!!.addPolygon(hexagon)
+        return map!!.addPolygon(polygon)
 
     }
 }
