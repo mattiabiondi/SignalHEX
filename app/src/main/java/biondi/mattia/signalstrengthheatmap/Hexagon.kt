@@ -75,8 +75,8 @@ class HexagonLayout(val orientation: Orientation, val size: Point, val origin: P
     fun pixelToHexagon(point: Point): Hexagon {
         val pt = Point((point.x - origin.x) / size.x,
                 (point.y - origin.y) / size.y)
-        val x = orientation.b0 * pt.x + orientation.b1 + pt.y
-        val y = orientation.b2 * pt.x + orientation.b3 + pt.y
+        val x = orientation.b0 * pt.x + orientation.b1 * pt.y
+        val y = orientation.b2 * pt.x + orientation.b3 * pt.y
         return Hexagon(x, y)
     }
 
@@ -100,11 +100,7 @@ class HexagonLayout(val orientation: Orientation, val size: Point, val origin: P
 
         var rx = round(hexagon.x)
         var ry = round(hexagon.y)
-        var rz = round(hexagon.z)
-
-        /*var rx = truncate(hexagon.x)
-        var ry = truncate(hexagon.y)
-        var rz = truncate(hexagon.z)*/
+        val rz = round(hexagon.z)
 
         val xDiff = abs(rx - hexagon.x)
         val yDiff = abs(ry - hexagon.y)
@@ -115,13 +111,7 @@ class HexagonLayout(val orientation: Orientation, val size: Point, val origin: P
         else if (yDiff > zDiff)
             ry = -rx-rz
 
-        /*if ((xDiff > yDiff) && (xDiff > zDiff))
-            rx = -ry-rz
-        else if (yDiff > zDiff)
-            ry = -rx-rz*/
-
         return Hexagon(rx, ry)
-
     }
 }
 

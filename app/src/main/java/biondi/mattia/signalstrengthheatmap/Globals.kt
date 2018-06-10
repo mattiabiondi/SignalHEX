@@ -25,53 +25,23 @@ var umtsList = mutableListOf<WeightedLatLng>()
 var lteList = mutableListOf<WeightedLatLng>()
 var wifiList = mutableListOf<WeightedLatLng>()
 
-// Lista dei cerchi disegnati a schermo
-var edgeCircle = mutableListOf<Circle>()
-var umtsCircle = mutableListOf<Circle>()
-var lteCircle = mutableListOf<Circle>()
-var wifiCircle = mutableListOf<Circle>()
-
 // Lista degli esagoni disegnati sulla mappa
 var edgeHexagon = mutableListOf<Polygon>()
 var umtsHexagon = mutableListOf<Polygon>()
 var lteHexagon = mutableListOf<Polygon>()
 var wifiHexagon = mutableListOf<Polygon>()
 
-
 fun clearLists() {
     edgeList.clear()
     umtsList.clear()
     lteList.clear()
     wifiList.clear()
-    //removeAllCircles()
     removeAllHexagons()
 }
-
-/*fun setVisibility(list: MutableList<Circle>, boolean: Boolean) {
-    for (i in 0 until list.size) {
-        list[i].isVisible = boolean
-    }
-}*/
 
 fun setVisibility(list: MutableList<Polygon>, boolean: Boolean) {
     for (i in 0 until list.size) {
         list[i].isVisible = boolean
-    }
-}
-
-fun removeAllCircles() {
-    for (i in 0 until 4) {
-        val list = when (i) {
-            0 -> edgeCircle
-            1 -> umtsCircle
-            2 -> lteCircle
-            3 -> wifiCircle
-            else -> null
-        }
-
-        for (k in 0 until list!!.size) {
-            list[k].remove()
-        }
     }
 }
 

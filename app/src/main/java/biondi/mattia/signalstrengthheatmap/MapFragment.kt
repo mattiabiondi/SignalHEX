@@ -187,61 +187,28 @@ class MapFragment: Fragment(), OnMapReadyCallback {
             when (currentNetwork) {
                 "2G" -> {
                     //edgeList.add(location)
-                    //edgeCircle.add(addCircle(location, edgeBoolean))
                     edgeHexagon.add(addHexagon(location, intensity, edgeBoolean))
                 }
                 "3G" -> {
                     //umtsList.add(location)
-                    //umtsCircle.add(addCircle(location, umtsBoolean))
                     umtsHexagon.add(addHexagon(location, intensity, umtsBoolean))
                 }
                 "4G" -> {
                     //lteList.add(location)
-                    //lteCircle.add(addCircle(location, lteBoolean))
                     lteHexagon.add(addHexagon(location, intensity, lteBoolean))
                 }
                 "Wi-Fi" -> {
                     //wifiList.add(location)
-                    //wifiCircle.add(addCircle(location, wifiBoolean))
                     wifiHexagon.add(addHexagon(location, intensity, wifiBoolean))
                 }
             }
         }
     }
 
-    private fun circleOptions(): CircleOptions {
-        return CircleOptions()
-                .clickable(false)
-                .radius(2.0)
-                .strokeColor(Color.TRANSPARENT)
-                .strokeWidth(0F)
-    }
-
-    private fun addCircle(location: WeightedLatLng, boolean: Boolean): Circle {
-        val color = when(location.intensity.toInt()) {
-            0 -> ContextCompat.getColor(activity, R.color.none)
-            1 -> ContextCompat.getColor(activity, R.color.poor)
-            2 -> ContextCompat.getColor(activity, R.color.moderate)
-            3 -> ContextCompat.getColor(activity, R.color.good)
-            4 -> ContextCompat.getColor(activity, R.color.great)
-            else -> Color.TRANSPARENT
-            //todo trasparenza
-        }
-
-        return map!!.addCircle(
-               circleOptions()
-                       .center(LatLng(currentLocation!!.latitude, currentLocation!!.longitude))
-                       .fillColor(color)
-                       .zIndex(location.intensity.toFloat())
-                       .visible(boolean))
-
-        //todo persistenza in onpause
-    }
-
     private fun addHexagon(location: LatLng, intensity: Int, boolean: Boolean): Polygon {
         val orientation = layout_pointy
         val size = Point(0.7, 1.0) // TODO controlla che sia regolare
-        val scale = 0.000015
+        val scale = 0.0000075
         val finalSize = Point(size.x * scale, size.y * scale)
         val origin = Point(location.latitude, location.longitude)
 
@@ -249,12 +216,9 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         lateinit var hexagon: Hexagon
         if (firstHexagon == null) {
             firstHexagon = HexagonLayout(orientation, finalSize, origin)
-            //val a = firstHexagon!!.pixelToHexagon(origin)
-            //hexagon = Hexagon((a.x), (a.y))
             hexagon = Hexagon(0.0, 0.0)
         } else {
             hexagon = firstHexagon!!.hexagonRound(origin)
-            Toast.makeText(activity, hexagon.x.toString() +", "+ hexagon.y.toString(), Toast.LENGTH_SHORT).show()
         }
         points = firstHexagon!!.polygonCorners(hexagon)
 
@@ -274,7 +238,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                 .visible(boolean)
 
         return map!!.addPolygon(polygon)
-
     }
 }
 
