@@ -8,13 +8,13 @@ import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapFragment
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.*
+import com.google.maps.android.PolyUtil
 import com.google.maps.android.geometry.Point
 import kotlinx.android.synthetic.main.content_layout.*
 
@@ -175,14 +175,12 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     }
 
     private fun saveLocation() {
-        // Controlla che la posizione attuale sia diversa da quella precedente
+        // Controlla che esista o meno l'esagono iniziale da cui calcolare gli esagoni seguenti
+        // Se la posizione cambia, ma si è già all'interno di un esagono, la funzione non viene eseguita
         // (Se si è fermi sul posto non continua a salvare le posizioni)
         val location = LatLng(currentLocation!!.latitude, currentLocation!!.longitude)
-
-        if (currentHexagon != null) //todo non funziona con il primo esagono
-            Toast.makeText(activity, contains(location, currentHexagon!!).toString(), Toast.LENGTH_SHORT).show()
-
-        if ((firstHexagon == null) || (!contains(location, currentHexagon!!))) {
+        // TODO controllo sul cambio di intensità sulla stessa posizione
+        if ((firstHexagon == null) || (!PolyUtil.containsLocation(location, currentHexagon!!.points, false))) {
             val intensity = currentIntensity
 
             when (currentNetwork) {
@@ -208,14 +206,14 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     private fun addHexagon(location: LatLng, intensity: Int, boolean: Boolean): Polygon {
         val orientation = layout_flat
-        val size = Point(0.7, 1.0) // TODO controlla che sia regolare
+        val ratio = Point(0.7, 1.0) // Latitudine e longitudine non hanno un aspect ratio regolare
         val scale = 0.0000075
-        val finalSize = Point(size.x * scale, size.y * scale)
+        val size = Point(ratio.x * scale, ratio.y * scale)
 
         lateinit var points: List<LatLng>
         lateinit var hexagon: Hexagon
         if (firstHexagon == null) {
-            firstHexagon = HexagonLayout(orientation, finalSize, location)
+            firstHexagon = HexagonLayout(orientation, size, location)
             hexagon = Hexagon(0.0, 0.0)
         } else {
             hexagon = firstHexagon!!.nearestHexagon(location)
