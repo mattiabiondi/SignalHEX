@@ -16,9 +16,7 @@ import com.google.android.gms.maps.MapFragment
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.*
 import com.google.maps.android.geometry.Point
-import com.google.maps.android.heatmaps.WeightedLatLng
 import kotlinx.android.synthetic.main.content_layout.*
-import kotlin.math.round
 
 class MapFragment: Fragment(), OnMapReadyCallback {
 
@@ -179,9 +177,12 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     private fun saveLocation() {
         // Controlla che la posizione attuale sia diversa da quella precedente
         // (Se si è fermi sul posto non continua a salvare le posizioni)
-        // TODO da migliorare, miglior controllo sulle coordinate entro un certo range
-        if (currentLocation != previousLocation) {
-            val location = LatLng(currentLocation!!.latitude, currentLocation!!.longitude)
+        val location = LatLng(currentLocation!!.latitude, currentLocation!!.longitude)
+
+        if (currentHexagon != null) //todo non funziona con il primo esagono
+            Toast.makeText(activity, contains(location, currentHexagon!!).toString(), Toast.LENGTH_SHORT).show()
+
+        if ((firstHexagon == null) || (!contains(location, currentHexagon!!))) {
             val intensity = currentIntensity
 
             when (currentNetwork) {
@@ -206,21 +207,20 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     }
 
     private fun addHexagon(location: LatLng, intensity: Int, boolean: Boolean): Polygon {
-        val orientation = layout_pointy
+        val orientation = layout_flat
         val size = Point(0.7, 1.0) // TODO controlla che sia regolare
         val scale = 0.0000075
         val finalSize = Point(size.x * scale, size.y * scale)
-        val origin = Point(location.latitude, location.longitude)
 
         lateinit var points: List<LatLng>
         lateinit var hexagon: Hexagon
         if (firstHexagon == null) {
-            firstHexagon = HexagonLayout(orientation, finalSize, origin)
+            firstHexagon = HexagonLayout(orientation, finalSize, location)
             hexagon = Hexagon(0.0, 0.0)
         } else {
-            hexagon = firstHexagon!!.hexagonRound(origin)
+            hexagon = firstHexagon!!.nearestHexagon(location)
         }
-        points = firstHexagon!!.polygonCorners(hexagon)
+        points = firstHexagon!!.getCorners(hexagon)
 
         val color = when(intensity) {
             0 -> ContextCompat.getColor(activity, R.color.none)
@@ -234,10 +234,12 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         val polygon = PolygonOptions()
                 .addAll(points)
                 .fillColor(color)
-                .strokeWidth(2F)
+                .strokeWidth(2.5F)
+                .strokeJointType(2)
                 .visible(boolean)
 
-        return map!!.addPolygon(polygon)
+        currentHexagon = map!!.addPolygon(polygon)
+        return currentHexagon!!
     }
 }
 

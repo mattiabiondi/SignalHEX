@@ -31,6 +31,8 @@ var umtsHexagon = mutableListOf<Polygon>()
 var lteHexagon = mutableListOf<Polygon>()
 var wifiHexagon = mutableListOf<Polygon>()
 
+var currentHexagon: Polygon? = null
+
 fun clearLists() {
     edgeList.clear()
     umtsList.clear()
@@ -60,6 +62,7 @@ fun removeAllHexagons() {
         }
     }
     firstHexagon = null
+    currentHexagon = null
 }
 
 // Chiavi per memorizzare lo stato dell'activity
