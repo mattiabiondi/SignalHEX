@@ -99,6 +99,10 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
+
+        // TODO funzione per cambiare tipo di mappa (magari nelle impostazioni)
+        //map!!.mapType = GoogleMap.MAP_TYPE_HYBRID
+
         // Ottiene la posizione attuale
         getLocation()
         // Aggiorna l'interfaccia della mappa (mostra o nasconde i comandi)
@@ -207,6 +211,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     private fun addHexagon(location: LatLng, intensity: Int, boolean: Boolean): Polygon {
         val orientation = layout_flat
         val ratio = Point(0.7, 1.0) // Latitudine e longitudine non hanno un aspect ratio regolare
+        // TODO funzione per modificare la dimensione dell'esagono nelle impostazioni
         val scale = 0.0000075
         val size = Point(ratio.x * scale, ratio.y * scale)
 
@@ -220,7 +225,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
         points = firstHexagon!!.getCorners(hexagon)
 
-        val color = when(intensity) {
+        var color = when(intensity) {
             0 -> ContextCompat.getColor(activity, R.color.none)
             1 -> ContextCompat.getColor(activity, R.color.poor)
             2 -> ContextCompat.getColor(activity, R.color.moderate)
@@ -228,6 +233,10 @@ class MapFragment: Fragment(), OnMapReadyCallback {
             4 -> ContextCompat.getColor(activity, R.color.great)
             else -> Color.TRANSPARENT
         }
+
+        //TODO funzione alpha
+        val alpha = 127 //getAlpha()
+        color = Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color))
 
         val polygon = PolygonOptions()
                 .addAll(points)
