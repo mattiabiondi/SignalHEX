@@ -1,8 +1,6 @@
 package biondi.mattia.signalstrengthheatmap
 
-import android.widget.Toast
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Polygon
 import com.google.maps.android.geometry.Point
 import kotlin.math.*
 

@@ -1,6 +1,5 @@
 package biondi.mattia.signalstrengthheatmap
 
-import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.Polygon
 import com.google.maps.android.heatmaps.WeightedLatLng
 
@@ -26,12 +25,16 @@ var lteList = mutableListOf<WeightedLatLng>()
 var wifiList = mutableListOf<WeightedLatLng>()
 
 // Lista degli esagoni disegnati sulla mappa
-var edgeHexagon = mutableListOf<Polygon>()
-var umtsHexagon = mutableListOf<Polygon>()
-var lteHexagon = mutableListOf<Polygon>()
-var wifiHexagon = mutableListOf<Polygon>()
+var edgePolygon = mutableListOf<Polygon>()
+var umtsPolygon = mutableListOf<Polygon>()
+var ltePolygon = mutableListOf<Polygon>()
+var wifiPolygon = mutableListOf<Polygon>()
 
-var currentHexagon: Polygon? = null
+var edgeHexagon = mutableListOf<Hexagon>()
+var umtsHexagon = mutableListOf<Hexagon>()
+var lteHexagon = mutableListOf<Hexagon>()
+var wifiHexagon = mutableListOf<Hexagon>()
+
 
 fun clearLists() {
     edgeList.clear()
@@ -49,7 +52,15 @@ fun setVisibility(list: MutableList<Polygon>, boolean: Boolean) {
 
 fun removeAllHexagons() {
     for (i in 0 until 4) {
-        val list = when (i) {
+        val polygonList = when (i) {
+            0 -> edgePolygon
+            1 -> umtsPolygon
+            2 -> ltePolygon
+            3 -> wifiPolygon
+            else -> null
+        }
+
+        val hexagonList = when (i) {
             0 -> edgeHexagon
             1 -> umtsHexagon
             2 -> lteHexagon
@@ -57,12 +68,17 @@ fun removeAllHexagons() {
             else -> null
         }
 
-        for (k in 0 until list!!.size) {
-            list[k].remove()
+        for (k in 0 until polygonList!!.size) {
+            polygonList[k].remove()
         }
     }
+
+    edgeHexagon.clear()
+    umtsHexagon.clear()
+    lteHexagon.clear()
+    wifiHexagon.clear()
+
     firstHexagon = null
-    currentHexagon = null
 }
 
 // Chiavi per memorizzare lo stato dell'activity

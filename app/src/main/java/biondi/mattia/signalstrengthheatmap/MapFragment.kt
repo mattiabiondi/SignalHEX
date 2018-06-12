@@ -8,13 +8,13 @@ import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapFragment
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.*
-import com.google.maps.android.PolyUtil
 import com.google.maps.android.geometry.Point
 import kotlinx.android.synthetic.main.content_layout.*
 
@@ -183,39 +183,32 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         // Se la posizione cambia, ma si è già all'interno di un esagono, la funzione non viene eseguita
         // (Se si è fermi sul posto non continua a salvare le posizioni)
         val location = LatLng(currentLocation!!.latitude, currentLocation!!.longitude)
-        // TODO controllo sul cambio di intensità sulla stessa posizione
-        if ((firstHexagon == null) || (!PolyUtil.containsLocation(location, currentHexagon!!.points, false))) {
-            val intensity = currentIntensity
+        val intensity = currentIntensity
+        val hexagon = createHexagon(location)
 
-            when (currentNetwork) {
-                "2G" -> {
-                    //edgeList.add(location)
-                    edgeHexagon.add(addHexagon(location, intensity, edgeBoolean))
-                }
-                "3G" -> {
-                    //umtsList.add(location)
-                    umtsHexagon.add(addHexagon(location, intensity, umtsBoolean))
-                }
-                "4G" -> {
-                    //lteList.add(location)
-                    lteHexagon.add(addHexagon(location, intensity, lteBoolean))
-                }
-                "Wi-Fi" -> {
-                    //wifiList.add(location)
-                    wifiHexagon.add(addHexagon(location, intensity, wifiBoolean))
-                }
+        when (currentNetwork) {
+            "2G" -> {
+                addOrUpdateHexagon(edgeHexagon, edgePolygon, hexagon, intensity, edgeBoolean)
+            }
+            "3G" -> {
+                addOrUpdateHexagon(umtsHexagon, umtsPolygon, hexagon, intensity, umtsBoolean)
+            }
+            "4G" -> {
+                addOrUpdateHexagon(lteHexagon, ltePolygon, hexagon, intensity, lteBoolean)
+            }
+            "Wi-Fi" -> {
+                addOrUpdateHexagon(wifiHexagon, wifiPolygon, hexagon, intensity, wifiBoolean)
             }
         }
     }
 
-    private fun addHexagon(location: LatLng, intensity: Int, boolean: Boolean): Polygon {
+    private fun createHexagon(location: LatLng): Hexagon {
         val orientation = layout_flat
         val ratio = Point(0.7, 1.0) // Latitudine e longitudine non hanno un aspect ratio regolare
         // TODO funzione per modificare la dimensione dell'esagono nelle impostazioni
         val scale = 0.0000075
         val size = Point(ratio.x * scale, ratio.y * scale)
 
-        lateinit var points: List<LatLng>
         lateinit var hexagon: Hexagon
         if (firstHexagon == null) {
             firstHexagon = HexagonLayout(orientation, size, location)
@@ -223,7 +216,24 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         } else {
             hexagon = firstHexagon!!.nearestHexagon(location)
         }
-        points = firstHexagon!!.getCorners(hexagon)
+        return hexagon
+    }
+
+    private fun hexagonExists(list: List<Hexagon>, hexagon: Hexagon): Boolean {
+        return list.contains(hexagon)
+    }
+
+    private fun updateHexagon(polygonList: MutableList<Polygon>, hexagon: Hexagon, intensity: Int) {
+        for (polygon in polygonList)
+            if (polygon.tag == hexagon)
+                if (polygon.zIndex != intensity.toFloat()) {
+                    polygon.zIndex = intensity.toFloat()
+                    return
+                }
+    }
+
+    private fun addHexagon(polygonList: MutableList<Polygon>, hexagonList: MutableList<Hexagon>, hexagon: Hexagon, intensity: Int, boolean: Boolean) {
+        val points = firstHexagon!!.getCorners(hexagon)
 
         var color = when(intensity) {
             0 -> ContextCompat.getColor(activity, R.color.none)
@@ -235,7 +245,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
 
         //TODO funzione alpha
-        val alpha = 127 //getAlpha()
+        val alpha = 255 //getAlpha()
         color = Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color))
 
         val polygon = PolygonOptions()
@@ -244,9 +254,22 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                 .strokeWidth(2.5F)
                 .strokeJointType(2)
                 .visible(boolean)
+                .zIndex(intensity.toFloat())
 
-        currentHexagon = map!!.addPolygon(polygon)
-        return currentHexagon!!
+        polygonList.add(map!!.addPolygon(polygon))
+        polygonList.last().tag = hexagon
+        hexagonList.add(hexagon)
+    }
+
+    private fun addOrUpdateHexagon(hexagonList: MutableList<Hexagon>, polygonList: MutableList<Polygon>, hexagon: Hexagon, intensity: Int, boolean: Boolean) {
+        if(hexagonExists(hexagonList, hexagon))
+            // TODO non entra mai qua
+            updateHexagon(polygonList, hexagon, intensity)
+        else
+            Toast.makeText(activity, wifiPolygon.size.toString(), Toast.LENGTH_SHORT/2).show()
+            addHexagon(polygonList, hexagonList, hexagon, intensity, boolean)
     }
 }
+
+
 
