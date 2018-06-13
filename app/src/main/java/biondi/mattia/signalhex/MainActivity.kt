@@ -1,4 +1,4 @@
-package biondi.mattia.signalstrengthheatmap
+package biondi.mattia.signalhex
 
 import android.content.Context
 import android.content.pm.PackageManager

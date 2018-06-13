@@ -1,4 +1,4 @@
-package biondi.mattia.signalstrengthheatmap
+package biondi.mattia.signalhex
 
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.geometry.Point

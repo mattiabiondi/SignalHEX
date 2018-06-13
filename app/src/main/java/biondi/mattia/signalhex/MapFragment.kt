@@ -1,4 +1,4 @@
-package biondi.mattia.signalstrengthheatmap
+package biondi.mattia.signalhex
 
 import android.app.Fragment
 import android.graphics.Color
