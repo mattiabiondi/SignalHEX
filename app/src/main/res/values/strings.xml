@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Signal Hexagons</string>
+    <string name="app_name">SignalHex</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="start">Play</string>
@@ -29,5 +29,5 @@
     <string name="location_permission_explain_2">LOCATION PERMISSION</string>
     <string name="location_permission_explain_3">to show you the map</string>
     <string name="location_permission_request">OK then,\nshow me the map</string>
-    <string name="group_title">Hexagons to show</string>
+    <string name="group_title">Networks to show</string>
 </resources>

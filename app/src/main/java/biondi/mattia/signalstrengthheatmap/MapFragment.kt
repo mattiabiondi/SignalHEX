@@ -177,7 +177,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     private fun saveLocation() {
         // Controlla che esista o meno l'esagono iniziale da cui calcolare gli esagoni seguenti
         // Se la posizione cambia, ma si è già all'interno di un esagono, la funzione non viene eseguita
-        // (Se si è fermi sul posto non continua a salvare le posizioni)
+        // (Se si è fermi sul posto non continua a salvare le posizioni) //Todo modifica
         val location = LatLng(currentLocation!!.latitude, currentLocation!!.longitude)
         val intensity = currentIntensity
         val hexagon = createHexagon(location)

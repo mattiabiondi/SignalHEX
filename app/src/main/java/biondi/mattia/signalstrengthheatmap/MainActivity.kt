@@ -47,7 +47,7 @@ class MainActivity :
 
     private val PRECISION = 5
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) { //todo fai partire tutti gli switch su true
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_layout)
 
