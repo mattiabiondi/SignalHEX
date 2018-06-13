@@ -105,7 +105,7 @@ class MainActivity :
 
     private fun locationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-    } //todo make it global
+    }
 
     private fun addFragment() {
         if (locationPermission()){
@@ -113,7 +113,7 @@ class MainActivity :
         } else {
             fragmentManager.beginTransaction().replace(R.id.fragment_frame, LocationPermissionFragment()).commit()
         }
-    } //todo make it global
+    }
 
     // Si occupa del risultato delle richieste
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -174,7 +174,7 @@ class MainActivity :
 
                 if (networkInfo != null && networkInfo.isConnected) {
                     if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                        runOnUiThread({
+                        runOnUiThread {
                             nameText1.text = getWifiName()
                             currentNetwork = getString(R.string.wifi)
                             typeText1.text = currentNetwork
@@ -182,11 +182,11 @@ class MainActivity :
                             currentIntensity = intensity
                             intensityText1.text = getString(R.string.intensity1, intensity, PRECISION-1)
                             getQuality(intensity)
-                        })
+                        }
                     } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
                         // Registra il listener qua per evitare di avere continui aggiornamenti se si utilizza solo il Wi-Fi
                         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS)
-                        runOnUiThread({
+                        runOnUiThread {
                             nameText1.text = getCarrierName()
                             currentNetwork = getNetworkType()
                             typeText1.text = currentNetwork
@@ -194,7 +194,7 @@ class MainActivity :
                             currentIntensity = intensity
                             intensityText1.text = getString(R.string.intensity1,  intensity, PRECISION-1)
                             getQuality(intensity)
-                        })
+                        }
                     }
                 }
             }
@@ -205,14 +205,14 @@ class MainActivity :
                 // attiva
                 val networkInfo = connectivityManager!!.activeNetworkInfo
                 if (networkInfo==null || !networkInfo.isConnected) {
-                    runOnUiThread({
+                    runOnUiThread {
                         nameText1.text = getString(R.string.not_connected)
                         currentNetwork = getString(R.string.none)
                         typeText1.text = getString(R.string.not_connected)
                         currentIntensity = 0
                         intensityText1.text = getString(R.string.not_connected)
                         getQuality(0)
-                    })
+                    }
                 }
             }
         }
@@ -236,57 +236,48 @@ class MainActivity :
     }
 
     private fun updateIcons() {
-        val edge_item = nav_view.menu.findItem(R.id.edge_item)
-        val umts_item = nav_view.menu.findItem(R.id.umts_item)
-        val lte_item = nav_view.menu.findItem(R.id.lte_item)
-        val wifi_item = nav_view.menu.findItem(R.id.wifi_item)
+        val edgeItem = nav_view.menu.findItem(R.id.edge_item)
+        val umtsItem = nav_view.menu.findItem(R.id.umts_item)
+        val lteItem = nav_view.menu.findItem(R.id.lte_item)
+        val wifiItem = nav_view.menu.findItem(R.id.wifi_item)
 
         if (locationPermission()) {
-            edge_item.isEnabled = true
-            edge_item.actionView.edge_switch.isEnabled = true
-            if(edgeBoolean) edge_item.setIcon(R.drawable.ic_cellular_on)
-            else edge_item.setIcon(R.drawable.ic_cellular_off)
+            edgeItem.isEnabled = true
+            edgeItem.actionView.edge_switch.isEnabled = true
+            if(edgeBoolean) edgeItem.setIcon(R.drawable.ic_cellular_on)
+            else edgeItem.setIcon(R.drawable.ic_cellular_off)
 
-            umts_item.isEnabled = true
-            umts_item.actionView.umts_switch.isEnabled = true
-            if(umtsBoolean) umts_item.setIcon(R.drawable.ic_cellular_on)
-            else umts_item.setIcon(R.drawable.ic_cellular_off)
+            umtsItem.isEnabled = true
+            umtsItem.actionView.umts_switch.isEnabled = true
+            if(umtsBoolean) umtsItem.setIcon(R.drawable.ic_cellular_on)
+            else umtsItem.setIcon(R.drawable.ic_cellular_off)
 
-            lte_item.isEnabled = true
-            lte_item.actionView.lte_switch.isEnabled = true
-            if(lteBoolean) lte_item.setIcon(R.drawable.ic_cellular_on)
-            else lte_item.setIcon(R.drawable.ic_cellular_off)
+            lteItem.isEnabled = true
+            lteItem.actionView.lte_switch.isEnabled = true
+            if(lteBoolean) lteItem.setIcon(R.drawable.ic_cellular_on)
+            else lteItem.setIcon(R.drawable.ic_cellular_off)
 
-            wifi_item.isEnabled = true
-            wifi_item.actionView.wifi_switch.isEnabled = true
-            if(wifiBoolean) wifi_item.setIcon(R.drawable.ic_wifi_on)
-            else wifi_item.setIcon(R.drawable.ic_wifi_off)
+            wifiItem.isEnabled = true
+            wifiItem.actionView.wifi_switch.isEnabled = true
+            if(wifiBoolean) wifiItem.setIcon(R.drawable.ic_wifi_on)
+            else wifiItem.setIcon(R.drawable.ic_wifi_off)
         } else {
-            edgeBoolean = false
-            edge_item.setIcon(R.drawable.ic_cellular_off)
-            edge_item.isEnabled = false
-            edge_item.actionView.edge_switch.isChecked = false
-            edge_item.actionView.edge_switch.isEnabled = false
+            edgeItem.isEnabled = false
+            edgeItem.actionView.edge_switch.isEnabled = false
+            edgeItem.setIcon(R.drawable.ic_cellular_off)
 
-            umtsBoolean = false
-            umts_item.setIcon(R.drawable.ic_cellular_off)
-            umts_item.isEnabled = false
-            umts_item.actionView.umts_switch.isChecked = false
-            umts_item.actionView.umts_switch.isEnabled = false
+            umtsItem.isEnabled = false
+            umtsItem.actionView.umts_switch.isEnabled = false
+            umtsItem.setIcon(R.drawable.ic_cellular_off)
 
-            lteBoolean = false
-            lte_item.setIcon(R.drawable.ic_cellular_off)
-            lte_item.isEnabled = false
-            lte_item.actionView.lte_switch.isChecked = false
-            lte_item.actionView.lte_switch.isEnabled = false
+            lteItem.isEnabled = false
+            lteItem.actionView.lte_switch.isEnabled = false
+            lteItem.setIcon(R.drawable.ic_cellular_off)
 
-            wifiBoolean = false
-            wifi_item.setIcon(R.drawable.ic_wifi_off)
-            wifi_item.isEnabled = false
-            wifi_item.actionView.wifi_switch.isChecked = false
-            wifi_item.actionView.wifi_switch.isEnabled = false
+            wifiItem.isEnabled = false
+            wifiItem.actionView.wifi_switch.isEnabled = false
+            wifiItem.setIcon(R.drawable.ic_wifi_off)
         }
-
     }
 
     override fun onBackPressed() {
@@ -330,16 +321,14 @@ class MainActivity :
                 val alert = AlertDialog.Builder(this)
                 alert.setMessage(R.string.alert_dialog_message)
                         .setTitle(R.string.alert_dialog_title)
-                alert.setPositiveButton(R.string.alert_dialog_positive, {
-                    _, _ ->
+                alert.setPositiveButton(R.string.alert_dialog_positive) { _, _ ->
                     startBoolean = false
                     invalidateOptionsMenu()
                     // Svuota le liste
                     clearLists()
-                })
-                alert.setNegativeButton(R.string.alert_dialog_negative, {
-                    _, _ ->  //niente
-                })
+                }
+                alert.setNegativeButton(R.string.alert_dialog_negative) { _, _ ->  //niente
+                }
                 val dialog = alert.create()
                 dialog.show()
             }

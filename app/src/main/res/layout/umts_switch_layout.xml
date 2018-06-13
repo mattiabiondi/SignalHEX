@@ -8,5 +8,6 @@
         android:id="@+id/umts_switch"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clickable="false"/>
+        android:clickable="false"
+        android:checked="true"/>
 </android.support.constraint.ConstraintLayout>

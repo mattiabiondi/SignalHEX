@@ -9,10 +9,10 @@ const val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
 var startBoolean = false
 
 // Booleani che controllano quale mappa visualizzare
-var edgeBoolean = false
-var umtsBoolean = false
-var lteBoolean = false
-var wifiBoolean = false
+var edgeBoolean = true
+var umtsBoolean = true
+var lteBoolean = true
+var wifiBoolean = true
 
 var currentNetwork = R.string.none.toString()
 var currentIntensity = 0
