@@ -12,6 +12,12 @@ class Hexagon(var x: Double, var y: Double) {
     init {
         if (x + y + z != 0.0) throw IllegalArgumentException("x + y + z must be 0")
     }
+
+    fun hexagonToString(): String {
+        val x = if (abs(x) == 0.0) "0.0" else x.toString()
+        val y = if (abs(y) == 0.0) "0.0" else y.toString()
+        return "$x $y"
+    }
 }
 
 class Orientation(val f0: Double, val f1: Double, val f2: Double, val f3: Double,

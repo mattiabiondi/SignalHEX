@@ -8,7 +8,6 @@ import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -17,6 +16,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.*
 import com.google.maps.android.geometry.Point
 import kotlinx.android.synthetic.main.content_layout.*
+import kotlin.math.abs
 
 class MapFragment: Fragment(), OnMapReadyCallback {
 
@@ -39,8 +39,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     // Booleana per mettere in pausa le richieste di posizione durante onPause()
     private var requestingLocationUpdates = false
-
-    private val defaultZoom: Float = 20f
 
     // La mappa
     private var map: GoogleMap? = null
@@ -116,7 +114,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                     .addOnSuccessListener { location : Location? ->
                         currentLocation = location
                         map?.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                LatLng(currentLocation?.latitude as Double, currentLocation?.longitude as Double), defaultZoom))
+                                LatLng(currentLocation?.latitude as Double, currentLocation?.longitude as Double), map!!.maxZoomLevel))
                     }
         } catch (e: SecurityException) {
         }
@@ -127,8 +125,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         try {
             map?.isMyLocationEnabled = true
             map?.uiSettings?.isMyLocationButtonEnabled = true
-            map?.uiSettings?.isZoomControlsEnabled = true
-
         } catch (e: SecurityException) {
         }
     }
@@ -219,30 +215,42 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         return hexagon
     }
 
-    private fun hexagonExists(list: List<Hexagon>, hexagon: Hexagon): Boolean {
-        return list.contains(hexagon)
+    private fun addOrUpdateHexagon(hexagonList: MutableList<Hexagon>, polygonList: MutableList<Polygon>, hexagon: Hexagon, intensity: Int, boolean: Boolean) {
+        val index = hexagonExists(polygonList, hexagon)
+
+        var firstPolygon = false
+        if (index == 0) {
+            if (polygonList.isEmpty())
+                firstPolygon = true
+        }
+
+        if(index != -1 && !firstPolygon) {
+            updateHexagon(polygonList[index], intensity)
+        }
+        else {
+            addHexagon(polygonList, hexagonList, hexagon, intensity, boolean)
+        }
     }
 
-    private fun updateHexagon(polygonList: MutableList<Polygon>, hexagon: Hexagon, intensity: Int) {
-        for (polygon in polygonList)
-            if (polygon.tag == hexagon)
-                if (polygon.zIndex != intensity.toFloat()) {
-                    polygon.zIndex = intensity.toFloat()
-                    return
-                }
+    private fun hexagonExists(list: List<Polygon>, hexagon: Hexagon): Int {
+
+        val x = abs(hexagon.x)
+        val y = abs(hexagon.y)
+        val abs = "$x $y"
+        if (abs == "0.0 0.0") return 0
+
+        for ((index, polygon) in list.withIndex()) {
+            if (polygon.tag == hexagon.hexagonToString()) {
+                return index
+            }
+        }
+        return -1
     }
 
     private fun addHexagon(polygonList: MutableList<Polygon>, hexagonList: MutableList<Hexagon>, hexagon: Hexagon, intensity: Int, boolean: Boolean) {
         val points = firstHexagon!!.getCorners(hexagon)
 
-        var color = when(intensity) {
-            0 -> ContextCompat.getColor(activity, R.color.none)
-            1 -> ContextCompat.getColor(activity, R.color.poor)
-            2 -> ContextCompat.getColor(activity, R.color.moderate)
-            3 -> ContextCompat.getColor(activity, R.color.good)
-            4 -> ContextCompat.getColor(activity, R.color.great)
-            else -> Color.TRANSPARENT
-        }
+        var color = getColor(intensity)
 
         //TODO funzione alpha
         val alpha = 255 //getAlpha()
@@ -257,19 +265,26 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                 .zIndex(intensity.toFloat())
 
         polygonList.add(map!!.addPolygon(polygon))
-        polygonList.last().tag = hexagon
+        polygonList.last().tag = hexagon.hexagonToString()
         hexagonList.add(hexagon)
     }
 
-    private fun addOrUpdateHexagon(hexagonList: MutableList<Hexagon>, polygonList: MutableList<Polygon>, hexagon: Hexagon, intensity: Int, boolean: Boolean) {
-        if(hexagonExists(hexagonList, hexagon))
-            // TODO non entra mai qua
-            updateHexagon(polygonList, hexagon, intensity)
-        else
-            Toast.makeText(activity, wifiPolygon.size.toString(), Toast.LENGTH_SHORT/2).show()
-            addHexagon(polygonList, hexagonList, hexagon, intensity, boolean)
+    private fun updateHexagon(polygon: Polygon, intensity: Int) {
+        if (polygon.zIndex != intensity.toFloat()) {
+            polygon.zIndex = intensity.toFloat()
+            polygon.fillColor = getColor(intensity)
+            return
+        }
+    }
+
+    private fun getColor(intensity: Int): Int {
+        return when(intensity) {
+            0 -> ContextCompat.getColor(activity, R.color.none)
+            1 -> ContextCompat.getColor(activity, R.color.poor)
+            2 -> ContextCompat.getColor(activity, R.color.moderate)
+            3 -> ContextCompat.getColor(activity, R.color.good)
+            4 -> ContextCompat.getColor(activity, R.color.great)
+            else -> Color.TRANSPARENT
+        }
     }
 }
-
-
-
