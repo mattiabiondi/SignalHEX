@@ -4,8 +4,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.geometry.Point
 import kotlin.math.*
 
-var firstHexagon: HexagonLayout? = null
-
 class Hexagon(var x: Double, var y: Double) {
     var z = (-x - y)
 

@@ -1,6 +1,7 @@
 package biondi.mattia.signalhex
 
 import android.app.Fragment
+import android.content.Context
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
@@ -16,6 +17,8 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.*
 import com.google.maps.android.geometry.Point
 import kotlinx.android.synthetic.main.content_layout.*
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import kotlin.math.abs
 
 class MapFragment: Fragment(), OnMapReadyCallback {
@@ -25,7 +28,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     // Posizione attuale
     private var currentLocation: Location? = null
-    private var previousLocation: Location? = null
 
     // Richiesta di posizione
     private lateinit var locationRequest: LocationRequest
@@ -36,9 +38,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     // Comandi da eseguire dopo aver ottenuto la posizione
     private lateinit var locationCallback: LocationCallback
-
-    // Booleana per mettere in pausa le richieste di posizione durante onPause()
-    private var requestingLocationUpdates = false
 
     // La mappa
     private var map: GoogleMap? = null
@@ -70,27 +69,25 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     override fun onResume() {
         super.onResume()
         startLocationUpdates()
+        //todo loadAll()
     }
 
     override fun onPause() {
         super.onPause()
         stopLocationUpdates()
+        //todo saveAll()
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
-        outState?.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, requestingLocationUpdates)
         outState?.putParcelable(CURRENT_LOCATION_KEY, currentLocation)
-        outState?.putParcelable(PREVIOUS_LOCATION_KEY, previousLocation)
         outState?.putBoolean(START_KEY, startBoolean)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         if (savedInstanceState != null) {
-            requestingLocationUpdates = savedInstanceState.getBoolean(REQUESTING_LOCATION_UPDATES_KEY)
             currentLocation = savedInstanceState.getParcelable(CURRENT_LOCATION_KEY)
-            previousLocation = savedInstanceState.getParcelable(PREVIOUS_LOCATION_KEY)
             startBoolean = savedInstanceState.getBoolean(START_KEY)
         }
     }
@@ -143,7 +140,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                 locationResult ?: return
                 for (location in locationResult.locations) {
                     // Aggiorna la posizione attuale
-                    previousLocation = currentLocation
                     currentLocation = location
                     activity.coordinatesText.text = (location.latitude).toString() + ", " + (location.longitude).toString()
 
@@ -155,23 +151,17 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     private fun startLocationUpdates() {
         try {
-            if (!requestingLocationUpdates) {
-                requestingLocationUpdates = true
-                fusedLocationProviderClient.requestLocationUpdates(
-                        locationRequest,
-                        locationCallback,
-                        null // Looper
-                )
-            }
+            fusedLocationProviderClient.requestLocationUpdates(
+                    locationRequest,
+                    locationCallback,
+                    null // Looper
+            )
         } catch (e: SecurityException) {
         }
     }
 
     private fun stopLocationUpdates() {
-        if (requestingLocationUpdates) {
-            requestingLocationUpdates = false
-            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
-        }
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
     }
 
     private fun saveLocation() {
@@ -281,6 +271,65 @@ class MapFragment: Fragment(), OnMapReadyCallback {
             3 -> ContextCompat.getColor(activity, R.color.good)
             4 -> ContextCompat.getColor(activity, R.color.great)
             else -> Color.TRANSPARENT
+        }
+    }
+
+    //TODO test
+    private fun saveAll() {
+        for (i in 0..8) {
+            val item = when (i) {
+                0 -> Pair(edgePolygon, "edgePolygon")
+                1 -> Pair(umtsPolygon, "umtsPolygon")
+                2 -> Pair(ltePolygon, "ltePolygon")
+                3 -> Pair(wifiPolygon, "wifiPolygon")
+                4 -> Pair(edgeHexagon, "edgeHexagon")
+                5 -> Pair(umtsHexagon, "umtsHexagon")
+                6 -> Pair(lteHexagon, "lteHexagon")
+                7 -> Pair(wifiHexagon, "wifiHexagon")
+                8 -> Pair(firstHexagon, "firstHexagon")
+                else -> null
+            }
+
+            context.openFileOutput(item!!.second, Context.MODE_PRIVATE).use {
+                ObjectOutputStream(it).use {
+                    it.writeObject(item.first)
+                }
+            }
+        }
+    }
+
+    //TODO test
+    private fun loadAll() {
+        for (i in 0..8) {
+            val name = when (i) {
+                0 -> "edgePolygon"
+                1 -> "umtsPolygon"
+                2 -> "ltePolygon"
+                3 -> "wifiPolygon"
+                4 -> "edgeHexagon"
+                5 -> "umtsHexagon"
+                6 -> "lteHexagon"
+                7 -> "wifiHexagon"
+                8 -> "firstHexagon"
+                else -> return
+            }
+
+            context.openFileInput(name).use {
+                ObjectInputStream(it).use {
+                    when (i) {
+                        0 -> edgePolygon = it.readObject() as MutableList<Polygon>
+                        1 -> umtsPolygon = it.readObject() as MutableList<Polygon>
+                        2 -> ltePolygon = it.readObject() as MutableList<Polygon>
+                        3 -> wifiPolygon = it.readObject() as MutableList<Polygon>
+                        4 -> edgeHexagon = it.readObject() as MutableList<Hexagon>
+                        5 -> umtsHexagon = it.readObject() as MutableList<Hexagon>
+                        6 -> lteHexagon = it.readObject() as MutableList<Hexagon>
+                        7 -> wifiHexagon = it.readObject() as MutableList<Hexagon>
+                        8 -> firstHexagon = it.readObject() as HexagonLayout
+                        else -> return
+                    }
+                }
+            }
         }
     }
 }

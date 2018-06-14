@@ -28,6 +28,7 @@ var umtsHexagon = mutableListOf<Hexagon>()
 var lteHexagon = mutableListOf<Hexagon>()
 var wifiHexagon = mutableListOf<Hexagon>()
 
+var firstHexagon: HexagonLayout? = null
 
 fun clearLists() {
     removeAllHexagons()
@@ -72,12 +73,6 @@ const val EDGE_BOOLEAN_KEY = "edge-boolean"
 const val UMTS_BOOLEAN_KEY = "umts-boolean"
 const val LTE_BOOLEAN_KEY = "lte-boolean"
 const val WIFI_BOOLEAN_KEY = "wifi-boolean"
+const val CURRENT_NETWORK = "current-network"
+const val CURRENT_INTENSITY = "current-intensity"
 const val CURRENT_LOCATION_KEY = "current-location"
-const val PREVIOUS_LOCATION_KEY = "previous-location"
-const val REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key"
-
-
-
-
-
-

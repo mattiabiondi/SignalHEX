@@ -43,11 +43,11 @@ class MainActivity :
 
     private var requestingNetworkUpdates = false
 
-    private var networkIntensity = 0 // TODO evita variabile globale
+    private var networkIntensity = 0
 
     private val PRECISION = 5
 
-    override fun onCreate(savedInstanceState: Bundle?) { //todo fai partire tutti gli switch su true
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_layout)
 
@@ -88,6 +88,8 @@ class MainActivity :
         outState?.putBoolean(UMTS_BOOLEAN_KEY, umtsBoolean)
         outState?.putBoolean(LTE_BOOLEAN_KEY, lteBoolean)
         outState?.putBoolean(WIFI_BOOLEAN_KEY, wifiBoolean)
+        outState?.putString(CURRENT_NETWORK, currentNetwork)
+        outState?.putInt(CURRENT_INTENSITY, currentIntensity)
         super.onSaveInstanceState(outState)
     }
 
@@ -100,6 +102,8 @@ class MainActivity :
             umtsBoolean = savedInstanceState.getBoolean(UMTS_BOOLEAN_KEY)
             lteBoolean = savedInstanceState.getBoolean(LTE_BOOLEAN_KEY)
             wifiBoolean = savedInstanceState.getBoolean(WIFI_BOOLEAN_KEY)
+            currentNetwork = savedInstanceState.getString(CURRENT_NETWORK)
+            currentIntensity = savedInstanceState.getInt(CURRENT_INTENSITY)
         }
     }
 
