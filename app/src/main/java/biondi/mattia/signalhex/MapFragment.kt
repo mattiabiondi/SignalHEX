@@ -1,7 +1,6 @@
 package biondi.mattia.signalhex
 
 import android.app.Fragment
-import android.content.Context
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
@@ -9,16 +8,17 @@ import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapFragment
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.*
+import com.google.gson.Gson
 import com.google.maps.android.geometry.Point
 import kotlinx.android.synthetic.main.content_layout.*
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
+
 import kotlin.math.abs
 
 class MapFragment: Fragment(), OnMapReadyCallback {
@@ -69,13 +69,11 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     override fun onResume() {
         super.onResume()
         startLocationUpdates()
-        //todo loadAll()
     }
 
     override fun onPause() {
         super.onPause()
         stopLocationUpdates()
-        //todo saveAll()
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
@@ -143,7 +141,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                     currentLocation = location
                     activity.coordinatesText.text = (location.latitude).toString() + ", " + (location.longitude).toString()
 
-                    if (startBoolean) saveLocation()
+                    if (startBoolean) saveLocation(LatLng(location.latitude, location.longitude), currentNetwork, currentIntensity, false)
                 }
             }
         }
@@ -164,12 +162,10 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         fusedLocationProviderClient.removeLocationUpdates(locationCallback)
     }
 
-    private fun saveLocation() {
-        val location = LatLng(currentLocation!!.latitude, currentLocation!!.longitude)
-        val intensity = currentIntensity
+    private fun saveLocation(location: LatLng, network: String, intensity: Int, loading: Boolean) {
         val hexagon = createHexagon(location)
 
-        when (currentNetwork) {
+        when (network) {
             "2G" -> {
                 addOrUpdateHexagon(edgeHexagon, edgePolygon, hexagon, intensity, edgeBoolean)
             }
@@ -274,61 +270,11 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
-    //TODO test
-    private fun saveAll() {
-        for (i in 0..8) {
-            val item = when (i) {
-                0 -> Pair(edgePolygon, "edgePolygon")
-                1 -> Pair(umtsPolygon, "umtsPolygon")
-                2 -> Pair(ltePolygon, "ltePolygon")
-                3 -> Pair(wifiPolygon, "wifiPolygon")
-                4 -> Pair(edgeHexagon, "edgeHexagon")
-                5 -> Pair(umtsHexagon, "umtsHexagon")
-                6 -> Pair(lteHexagon, "lteHexagon")
-                7 -> Pair(wifiHexagon, "wifiHexagon")
-                8 -> Pair(firstHexagon, "firstHexagon")
-                else -> null
-            }
-
-            context.openFileOutput(item!!.second, Context.MODE_PRIVATE).use {
-                ObjectOutputStream(it).use {
-                    it.writeObject(item.first)
-                }
-            }
-        }
-    }
-
-    //TODO test
-    private fun loadAll() {
-        for (i in 0..8) {
-            val name = when (i) {
-                0 -> "edgePolygon"
-                1 -> "umtsPolygon"
-                2 -> "ltePolygon"
-                3 -> "wifiPolygon"
-                4 -> "edgeHexagon"
-                5 -> "umtsHexagon"
-                6 -> "lteHexagon"
-                7 -> "wifiHexagon"
-                8 -> "firstHexagon"
-                else -> return
-            }
-
-            context.openFileInput(name).use {
-                ObjectInputStream(it).use {
-                    when (i) {
-                        0 -> edgePolygon = it.readObject() as MutableList<Polygon>
-                        1 -> umtsPolygon = it.readObject() as MutableList<Polygon>
-                        2 -> ltePolygon = it.readObject() as MutableList<Polygon>
-                        3 -> wifiPolygon = it.readObject() as MutableList<Polygon>
-                        4 -> edgeHexagon = it.readObject() as MutableList<Hexagon>
-                        5 -> umtsHexagon = it.readObject() as MutableList<Hexagon>
-                        6 -> lteHexagon = it.readObject() as MutableList<Hexagon>
-                        7 -> wifiHexagon = it.readObject() as MutableList<Hexagon>
-                        8 -> firstHexagon = it.readObject() as HexagonLayout
-                        else -> return
-                    }
-                }
+    //TODO non funzionaaaaaa
+    private fun load(locationList: ArrayList<LatLng>, networkList: ArrayList<String>, intensityList: ArrayList<Int>) {
+        if (locationList.size == networkList.size && locationList.size == intensityList.size) {
+            for (i in 0 until locationList.size) {
+                saveLocation(locationList[i], networkList[i], intensityList[i], true)
             }
         }
     }

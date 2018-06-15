@@ -1,5 +1,6 @@
 package biondi.mattia.signalhex
 
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Polygon
 
 // Codice di richiesta
@@ -16,6 +17,11 @@ var wifiBoolean = true
 
 var currentNetwork = R.string.none.toString()
 var currentIntensity = 0
+
+// Lista delle coordinate salvate
+var locationList = arrayListOf<LatLng>()
+var networkList = arrayListOf<String>()
+var intensityList = arrayListOf<Int>()
 
 // Lista degli esagoni disegnati sulla mappa
 var edgePolygon = mutableListOf<Polygon>()
@@ -76,3 +82,6 @@ const val WIFI_BOOLEAN_KEY = "wifi-boolean"
 const val CURRENT_NETWORK = "current-network"
 const val CURRENT_INTENSITY = "current-intensity"
 const val CURRENT_LOCATION_KEY = "current-location"
+const val LOCATION_LIST = "location-list"
+const val NETWORK_LIST = "network-list"
+const val INTENSITY_LIST = "intensity-list"
