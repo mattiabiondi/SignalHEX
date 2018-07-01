@@ -1,6 +1,7 @@
 package biondi.mattia.signalhex
 
-import android.app.Fragment
+import android.app.Activity
+import android.support.v4.app.Fragment
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
@@ -10,12 +11,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import com.google.android.gms.location.*
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.*
 import com.google.android.gms.maps.MapFragment
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.*
-import com.google.gson.Gson
 import com.google.maps.android.geometry.Point
 import kotlinx.android.synthetic.main.content_layout.*
 
@@ -42,22 +40,22 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     // La mappa
     private var map: GoogleMap? = null
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        return inflater!!.inflate(R.layout.map_layout, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.map_layout, container, false)
     }
 
     override fun onStart() {
         super.onStart()
-        activity.invalidateOptionsMenu()
+        activity!!.invalidateOptionsMenu()
         // Imposta il titolo dell'Activity
         //activity.setTitle(R.string.)
 
         // Inizializzazione del FusedLocationProvider
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(activity.applicationContext)
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(activity as Activity)
         // Recupera il Fragment in cui mostrare la mappa
         // Utilizza childFragmentManager perchè il Map Fragment è un Fragment nel Fragment
         // Nota: è necessario il cast a MapFragment in quanto la funzione ritorna un Fragment
-        val mapFragment = childFragmentManager.findFragmentById(R.id.map_fragment) as MapFragment
+        val mapFragment = childFragmentManager.findFragmentById(R.id.map_fragment) as SupportMapFragment
         // Acquisisce la mappa e la inizializza quando l'istanza GoogleMap è pronta per essere utilizzata
         mapFragment.getMapAsync(this)
         // Crea la richiesta di aggiornamenti continui sulla posizione
@@ -76,14 +74,15 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         stopLocationUpdates()
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
+    override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState?.putParcelable(CURRENT_LOCATION_KEY, currentLocation)
-        outState?.putBoolean(START_KEY, startBoolean)
+        outState.putParcelable(CURRENT_LOCATION_KEY, currentLocation)
+        outState.putBoolean(START_KEY, startBoolean)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        retainInstance = true
         if (savedInstanceState != null) {
             currentLocation = savedInstanceState.getParcelable(CURRENT_LOCATION_KEY)
             startBoolean = savedInstanceState.getBoolean(START_KEY)
@@ -139,7 +138,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                 for (location in locationResult.locations) {
                     // Aggiorna la posizione attuale
                     currentLocation = location
-                    activity.coordinatesText.text = (location.latitude).toString() + ", " + (location.longitude).toString()
+                    activity!!.coordinatesText.text = (location.latitude).toString() + ", " + (location.longitude).toString()
 
                     if (startBoolean) saveLocation(LatLng(location.latitude, location.longitude), currentNetwork, currentIntensity, false)
                 }
@@ -261,11 +260,11 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     private fun getColor(intensity: Int): Int {
         return when(intensity) {
-            0 -> ContextCompat.getColor(activity, R.color.none)
-            1 -> ContextCompat.getColor(activity, R.color.poor)
-            2 -> ContextCompat.getColor(activity, R.color.moderate)
-            3 -> ContextCompat.getColor(activity, R.color.good)
-            4 -> ContextCompat.getColor(activity, R.color.great)
+            0 -> ContextCompat.getColor(activity as Activity, R.color.none)
+            1 -> ContextCompat.getColor(activity as Activity, R.color.poor)
+            2 -> ContextCompat.getColor(activity as Activity, R.color.moderate)
+            3 -> ContextCompat.getColor(activity as Activity, R.color.good)
+            4 -> ContextCompat.getColor(activity as Activity, R.color.great)
             else -> Color.TRANSPARENT
         }
     }

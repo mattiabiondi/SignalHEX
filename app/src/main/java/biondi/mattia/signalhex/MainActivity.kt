@@ -8,6 +8,7 @@ import android.net.*
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.design.widget.NavigationView
+import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
@@ -114,9 +115,9 @@ class MainActivity :
 
     private fun addFragment() {
         if (locationPermission()){
-            fragmentManager.beginTransaction().replace(R.id.fragment_frame, MapFragment()).commit()
+            supportFragmentManager.beginTransaction().replace(R.id.fragment_frame, MapFragment()).commit()
         } else {
-            fragmentManager.beginTransaction().replace(R.id.fragment_frame, LocationPermissionFragment()).commit()
+            supportFragmentManager.beginTransaction().replace(R.id.fragment_frame, LocationPermissionFragment()).commit()
         }
     }
 
