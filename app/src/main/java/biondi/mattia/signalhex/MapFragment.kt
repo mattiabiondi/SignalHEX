@@ -1,6 +1,7 @@
 package biondi.mattia.signalhex
 
 import android.app.Activity
+import android.arch.lifecycle.ViewModelProviders
 import android.support.v4.app.Fragment
 import android.graphics.Color
 import android.location.Location
@@ -41,6 +42,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     private var map: GoogleMap? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        this.retainInstance = true
         return inflater.inflate(R.layout.map_layout, container, false)
     }
 
@@ -82,7 +84,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        retainInstance = true
         if (savedInstanceState != null) {
             currentLocation = savedInstanceState.getParcelable(CURRENT_LOCATION_KEY)
             startBoolean = savedInstanceState.getBoolean(START_KEY)
