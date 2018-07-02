@@ -20,6 +20,26 @@ import kotlinx.android.synthetic.main.content_layout.*
 
 import kotlin.math.abs
 
+// Lista delle coordinate salvate
+var locationList = arrayListOf<LatLng>()
+var networkList = arrayListOf<String>()
+var intensityList = arrayListOf<Int>()
+
+// Lista dei poligoni disegnati sulla mappa
+var edgePolygon = mutableListOf<Polygon>()
+var umtsPolygon = mutableListOf<Polygon>()
+var ltePolygon = mutableListOf<Polygon>()
+var wifiPolygon = mutableListOf<Polygon>()
+
+// Lista degli esagoni disegnati sulla mappa
+var edgeHexagon = mutableListOf<Hexagon>()
+var umtsHexagon = mutableListOf<Hexagon>()
+var lteHexagon = mutableListOf<Hexagon>()
+var wifiHexagon = mutableListOf<Hexagon>()
+
+// Il primo esagono da cui iniziare a disegnare gli altri
+var firstHexagon: HexagonLayout? = null
+
 class MapFragment: Fragment(), OnMapReadyCallback {
 
     // Costrutto del FusedLocationProviderClient
@@ -27,6 +47,8 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     // Posizione attuale
     private var currentLocation: Location? = null
+    // Chiavi per memorizzare lo stato dell'activity
+    val CURRENT_LOCATION_KEY = "current-location"
 
     // Richiesta di posizione
     private lateinit var locationRequest: LocationRequest
@@ -42,7 +64,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     private var map: GoogleMap? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        this.retainInstance = true
         return inflater.inflate(R.layout.map_layout, container, false)
     }
 
@@ -79,14 +100,12 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putParcelable(CURRENT_LOCATION_KEY, currentLocation)
-        outState.putBoolean(START_KEY, startBoolean)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         if (savedInstanceState != null) {
             currentLocation = savedInstanceState.getParcelable(CURRENT_LOCATION_KEY)
-            startBoolean = savedInstanceState.getBoolean(START_KEY)
         }
     }
 
@@ -100,6 +119,8 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         getLocation()
         // Aggiorna l'interfaccia della mappa (mostra o nasconde i comandi)
         updateLocationUI()
+        // Carica i poligoni dalla memoria
+        loadMap()
     }
 
     private fun getLocation() {
@@ -164,6 +185,12 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     private fun saveLocation(location: LatLng, network: String, intensity: Int, loading: Boolean) {
         val hexagon = createHexagon(location)
+
+        if (!loading) {
+            locationList.add(location)
+            networkList.add(network)
+            intensityList.add(intensity)
+        }
 
         when (network) {
             "2G" -> {
@@ -270,12 +297,60 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
-    //TODO non funzionaaaaaa
-    private fun load(locationList: ArrayList<LatLng>, networkList: ArrayList<String>, intensityList: ArrayList<Int>) {
+    private fun loadMap() {
+        // Ferma gli aggiornamenti sulla posizione se sono in esecuzione
+        var startBooleanState = false
+        if (startBoolean) {
+            startBooleanState = startBoolean
+            startBoolean = false
+        }
+        // Controlla che le liste siano tutte della stessa dimensione per evitare problemi
         if (locationList.size == networkList.size && locationList.size == intensityList.size) {
+            // Svuota le liste attuali per ri-riempirle con i dati salvati in memoria
+            clearLists(true)
+            // Cicla le tre liste ricreando la situazione precedente sulla mappa
             for (i in 0 until locationList.size) {
                 saveLocation(locationList[i], networkList[i], intensityList[i], true)
             }
         }
+        // Fa ripartire gli aggiornamenti se erano in esecuzione
+        if (startBooleanState) startBoolean = true
     }
+}
+
+fun clearLists(loading: Boolean) {
+    if (!loading) {
+        locationList.clear()
+        networkList.clear()
+        intensityList.clear()
+    }
+
+    removeAllHexagons()
+
+    edgePolygon.clear()
+    umtsPolygon.clear()
+    ltePolygon.clear()
+    wifiPolygon.clear()
+
+    edgeHexagon.clear()
+    umtsHexagon.clear()
+    lteHexagon.clear()
+    wifiHexagon.clear()
+}
+
+fun removeAllHexagons() {
+    for (i in 0 until 4) {
+        val polygonList = when (i) {
+            0 -> edgePolygon
+            1 -> umtsPolygon
+            2 -> ltePolygon
+            3 -> wifiPolygon
+            else -> null
+        }
+
+        for (k in 0 until polygonList!!.size) {
+            polygonList[k].remove()
+        }
+    }
+    firstHexagon = null
 }

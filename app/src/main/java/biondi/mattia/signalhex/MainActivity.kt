@@ -18,6 +18,7 @@ import android.telephony.*
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import com.google.android.gms.maps.model.Polygon
 import kotlinx.android.synthetic.main.main_layout.*
 import kotlinx.android.synthetic.main.app_bar_layout.*
 import kotlinx.android.synthetic.main.content_layout.*
@@ -29,6 +30,21 @@ import kotlinx.android.synthetic.main.umts_switch_layout.*
 import kotlinx.android.synthetic.main.umts_switch_layout.view.*
 import kotlinx.android.synthetic.main.wifi_switch_layout.*
 import kotlinx.android.synthetic.main.wifi_switch_layout.view.*
+
+// Codice di richiesta
+const val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
+
+// Boolean che controlla se deve ottenere o meno i dati
+var startBoolean = false
+
+// Booleani che controllano quale mappa visualizzare
+var edgeBoolean = true
+var umtsBoolean = true
+var lteBoolean = true
+var wifiBoolean = true
+
+var currentNetwork = R.string.none.toString()
+var currentIntensity = 0
 
 class MainActivity :
         AppCompatActivity(),
@@ -83,30 +99,6 @@ class MainActivity :
     override fun onPause() {
         super.onPause()
         stopNetworkUpdates()
-    }
-
-    override fun onSaveInstanceState(outState: Bundle?) {
-        outState?.putBoolean(EDGE_BOOLEAN_KEY, edgeBoolean)
-        outState?.putBoolean(UMTS_BOOLEAN_KEY, umtsBoolean)
-        outState?.putBoolean(LTE_BOOLEAN_KEY, lteBoolean)
-        outState?.putBoolean(WIFI_BOOLEAN_KEY, wifiBoolean)
-        outState?.putString(CURRENT_NETWORK, currentNetwork)
-        outState?.putInt(CURRENT_INTENSITY, currentIntensity)
-        super.onSaveInstanceState(outState)
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
-        // Chiama la superclasse in modo da recuperare la gerarchia della view
-        super.onRestoreInstanceState(savedInstanceState)
-        // Recupera lo stato delle variabili dall'istanza salvata
-        if (savedInstanceState != null) {
-            edgeBoolean = savedInstanceState.getBoolean(EDGE_BOOLEAN_KEY)
-            umtsBoolean = savedInstanceState.getBoolean(UMTS_BOOLEAN_KEY)
-            lteBoolean = savedInstanceState.getBoolean(LTE_BOOLEAN_KEY)
-            wifiBoolean = savedInstanceState.getBoolean(WIFI_BOOLEAN_KEY)
-            currentNetwork = savedInstanceState.getString(CURRENT_NETWORK)
-            currentIntensity = savedInstanceState.getInt(CURRENT_INTENSITY)
-        }
     }
 
     private fun locationPermission(): Boolean {
@@ -331,7 +323,7 @@ class MainActivity :
                     startBoolean = false
                     invalidateOptionsMenu()
                     // Svuota le liste
-                    clearLists()
+                    clearLists(false)
                 }
                 alert.setNegativeButton(R.string.alert_dialog_negative) { _, _ ->  //niente
                 }
@@ -373,6 +365,12 @@ class MainActivity :
         // Chiude il Navigation Drawer
         //drawer_layout.closeDrawer(GravityCompat.START)
         return true
+    }
+
+    private fun setVisibility(list: MutableList<Polygon>, boolean: Boolean) {
+        for (i in 0 until list.size) {
+            list[i].isVisible = boolean
+        }
     }
 
     private fun getWifiName(): String {
