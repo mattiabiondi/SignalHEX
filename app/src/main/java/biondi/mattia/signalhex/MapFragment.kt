@@ -1,7 +1,7 @@
 package biondi.mattia.signalhex
 
 import android.app.Activity
-import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.support.v4.app.Fragment
 import android.graphics.Color
 import android.location.Location
@@ -13,10 +13,14 @@ import android.view.ViewGroup
 import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
-import com.google.android.gms.maps.MapFragment
 import com.google.android.gms.maps.model.*
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.google.maps.android.geometry.Point
 import kotlinx.android.synthetic.main.content_layout.*
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
 
 import kotlin.math.abs
 
@@ -89,12 +93,14 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     override fun onResume() {
         super.onResume()
+        loadLists()
         startLocationUpdates()
     }
 
     override fun onPause() {
         super.onPause()
         stopLocationUpdates()
+        saveLists()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -297,8 +303,73 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
+    private fun saveLists() {
+        val gson = Gson()
+        for (i in 0 until 3) {
+            val name = when(i) {
+                0 -> "location.json"
+                1 -> "network.json"
+                2 -> "intensity.json"
+                else -> null
+            }
+
+            val list = when(i) {
+                0 -> locationList
+                1 -> networkList
+                2 -> intensityList
+                else -> null
+            }
+
+            if (exists(name!!)) delete(name)
+            context!!.openFileOutput(name, Context.MODE_PRIVATE).use {
+                it.write(gson.toJson(list).toByteArray())
+            }
+        }
+    }
+
+    private fun exists(fileName: String): Boolean {
+        val path = context!!.filesDir.absolutePath + "/" + fileName
+        val file = File(path)
+        return file.exists()
+    }
+
+    private fun delete(fileName: String) {
+        val path = context!!.filesDir.absolutePath + "/" + fileName
+        val file = File(path)
+        file.delete()
+    }
+
+    private fun loadLists() {
+        val gson = Gson()
+        for (i in 0 until 3) {
+            val name = when(i) {
+                0 -> "location.json"
+                1 -> "network.json"
+                2 -> "intensity.json"
+                else -> null
+            }
+
+            if (exists(name!!)) {
+                val fileInputStream = context!!.openFileInput(name)
+                val inputStreamReader = InputStreamReader(fileInputStream)
+                val bufferedReader = BufferedReader(inputStreamReader)
+                val stringBuilder = StringBuilder()
+                var line =  bufferedReader.readLine()
+                while (line != null) {
+                    stringBuilder.append(line)
+                    line =  bufferedReader.readLine()
+                }
+                when(i) {
+                    0 -> locationList = gson.fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<LatLng>>(){}.type)
+                    1 -> networkList = gson.fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<String>>(){}.type)
+                    2 -> intensityList = gson.fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<Int>>(){}.type)
+                }
+            } else return
+        }
+    }
+
     private fun loadMap() {
-        // Ferma gli aggiornamenti sulla posizione se sono in esecuzione
+        // Ferma gli aggiornamenti sulla posizione nel caso siano in esecuzione
         var startBooleanState = false
         if (startBoolean) {
             startBooleanState = startBoolean
@@ -313,9 +384,11 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                 saveLocation(locationList[i], networkList[i], intensityList[i], true)
             }
         }
-        // Fa ripartire gli aggiornamenti se erano in esecuzione
+        // Fa ripartire gli aggiornamenti nel caso fossero in esecuzione
         if (startBooleanState) startBoolean = true
     }
+
+
 }
 
 fun clearLists(loading: Boolean) {
