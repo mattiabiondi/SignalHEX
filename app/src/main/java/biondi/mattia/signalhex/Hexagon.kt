@@ -1,5 +1,12 @@
 package biondi.mattia.signalhex
 
+import android.app.AlertDialog
+import android.app.Dialog
+import android.app.DialogFragment
+import android.app.FragmentManager
+import android.content.DialogInterface
+import android.os.Bundle
+import android.widget.Toast
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.geometry.Point
 import kotlin.math.*
@@ -78,5 +85,18 @@ class HexagonLayout(val orientation: Orientation, val size: Point, val origin: L
             ry = -rx-rz
 
         return Hexagon(rx, ry)
+    }
+}
+
+class HexagonsDimension: DialogFragment() {
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val builder = AlertDialog.Builder(activity)
+        builder.setTitle("Hexagons dimension")
+                .setSingleChoiceItems(R.array.hexagons_dimension_list, hexagonDimension, DialogInterface.OnClickListener { dialog, which ->
+                    hexagonDimension = which
+                    // todo riavvia l'activity
+                    dismiss()
+                })
+        return builder.create()
     }
 }

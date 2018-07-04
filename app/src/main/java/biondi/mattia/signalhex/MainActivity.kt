@@ -1,5 +1,6 @@
 package biondi.mattia.signalhex
 
+import android.app.FragmentManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -24,6 +25,7 @@ import kotlinx.android.synthetic.main.edge_switch_layout.*
 import kotlinx.android.synthetic.main.edge_switch_layout.view.*
 import kotlinx.android.synthetic.main.lte_switch_layout.*
 import kotlinx.android.synthetic.main.lte_switch_layout.view.*
+import kotlinx.android.synthetic.main.map_satellite_layout.*
 import kotlinx.android.synthetic.main.umts_switch_layout.*
 import kotlinx.android.synthetic.main.umts_switch_layout.view.*
 import kotlinx.android.synthetic.main.wifi_switch_layout.*
@@ -44,6 +46,8 @@ var wifiBoolean = true
 var currentNetwork = R.string.none.toString()
 var currentIntensity = 0
 
+var satelliteBoolean = false
+
 class MainActivity :
         AppCompatActivity(),
         NavigationView.OnNavigationItemSelectedListener {
@@ -62,6 +66,7 @@ class MainActivity :
     private var networkIntensity = 0
 
     private val PRECISION = 5
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -355,9 +360,13 @@ class MainActivity :
                 wifi_switch.isChecked = wifiBoolean
                 setVisibility(wifiPolygon, wifiBoolean)
             }
-            R.id.map_type -> {
-                // TODO: implementa impostazioni
-                MapType().show(fragmentManager, "map_type")
+            R.id.map_satellite -> {
+                satelliteBoolean = !satelliteBoolean
+                map_satellite_checkbox.isChecked = satelliteBoolean
+                setMapType()
+            }
+            R.id.hexagons_dimension -> {
+                HexagonsDimension().show(fragmentManager, "hexagon dimension")
             }
         }
         invalidateOptionsMenu()

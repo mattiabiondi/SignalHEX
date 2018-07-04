@@ -17,6 +17,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.google.maps.android.geometry.Point
 import kotlinx.android.synthetic.main.content_layout.*
+import kotlinx.android.synthetic.main.map_satellite_layout.*
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -43,6 +44,11 @@ var wifiHexagon = mutableListOf<Hexagon>()
 // Il primo esagono da cui iniziare a disegnare gli altri
 var firstHexagon: HexagonLayout? = null
 
+// La mappa
+var map: GoogleMap? = null
+
+var hexagonDimension = 2
+
 class MapFragment: Fragment(), OnMapReadyCallback {
 
     // Costrutto del FusedLocationProviderClient
@@ -62,9 +68,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     // Comandi da eseguire dopo aver ottenuto la posizione
     private lateinit var locationCallback: LocationCallback
-
-    // La mappa
-    private var map: GoogleMap? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.map_layout, container, false)
@@ -115,9 +118,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
-        // TODO funzione per cambiare tipo di mappa (magari nelle impostazioni)
-        map!!.mapType = GoogleMap.MAP_TYPE_HYBRID
-
+        setMapType()
         // Ottiene la posizione attuale
         getLocation()
         // Aggiorna l'interfaccia della mappa (mostra o nasconde i comandi)
@@ -216,7 +217,8 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         val orientation = layout_flat
         val ratio = Point(0.7, 1.0) // Latitudine e longitudine non hanno un aspect ratio regolare
         // TODO funzione per modificare la dimensione dell'esagono nelle impostazioni
-        val scale = 0.0000075
+        val scale = (hexagonDimension + 1) * 0.00000375
+        //val scale = 0.0000075
         val size = Point(ratio.x * scale, ratio.y * scale)
 
         lateinit var hexagon: Hexagon
@@ -387,6 +389,14 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     }
 
 
+}
+
+fun setMapType() {
+    map ?: return
+    if (satelliteBoolean)
+        map!!.mapType = GoogleMap.MAP_TYPE_HYBRID
+    else
+        map!!.mapType = GoogleMap.MAP_TYPE_NORMAL
 }
 
 fun clearLists(loading: Boolean) {

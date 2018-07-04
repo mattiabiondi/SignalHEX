@@ -36,9 +36,11 @@
     </group>
 
     <item
-        android:id="@+id/map_type"
+        android:id="@+id/map_satellite"
         android:icon="@drawable/ic_map"
-        android:title="@string/map_type"/>
+        android:title="@string/map_satellite"
+        app:actionLayout="@layout/map_satellite_layout">
+    </item>
 
     <group>
         <item android:title="@string/hexagons">
