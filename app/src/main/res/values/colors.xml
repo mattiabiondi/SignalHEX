@@ -3,9 +3,22 @@
     <color name="colorPrimary">@color/primary_material_dark</color>
     <color name="colorPrimaryDark">@color/primary_dark_material_dark</color>
     <color name="colorAccent">@color/accent_material_dark</color>
-    <color name="none">#FF0000</color>
-    <color name="poor">#FF8C00</color>
-    <color name="moderate">#FFFF00</color>
-    <color name="good">#ADFF2F</color>
-    <color name="great">#00FF00</color>
+
+    <color name="none0">#FF0000</color>
+    <color name="poor0">#FF8C00</color>
+    <color name="moderate0">#FFFF00</color>
+    <color name="good0">#ADFF2F</color>
+    <color name="great0">#00FF00</color>
+
+    <color name="none1">#0080FF</color>
+    <color name="poor1">#00FFFF</color>
+    <color name="moderate1">#00FF80</color>
+    <color name="good1">#FFFF00</color>
+    <color name="great1">#FF8000</color>
+
+    <color name="none2">#7F00FF</color>
+    <color name="poor2">#FF00FF</color>
+    <color name="moderate2">#FF0000</color>
+    <color name="good2">#FF8000</color>
+    <color name="great2">#FFFF00</color>
 </resources>

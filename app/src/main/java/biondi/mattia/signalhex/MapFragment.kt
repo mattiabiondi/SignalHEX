@@ -10,6 +10,7 @@ import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
@@ -17,7 +18,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.google.maps.android.geometry.Point
 import kotlinx.android.synthetic.main.content_layout.*
-import kotlinx.android.synthetic.main.map_satellite_layout.*
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -47,7 +47,9 @@ var firstHexagon: HexagonLayout? = null
 // La mappa
 var map: GoogleMap? = null
 
-var hexagonDimension = 2
+var hexagonsDimension = 1 //TODO da salvare in memoria e rimuovere la possibilità se no permission
+var hexagonsColors = 0
+var hexagonsAlpha = 0
 
 class MapFragment: Fragment(), OnMapReadyCallback {
 
@@ -216,9 +218,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     private fun createHexagon(location: LatLng): Hexagon {
         val orientation = layout_flat
         val ratio = Point(0.7, 1.0) // Latitudine e longitudine non hanno un aspect ratio regolare
-        // TODO funzione per modificare la dimensione dell'esagono nelle impostazioni
-        val scale = (hexagonDimension + 1) * 0.00000375
-        //val scale = 0.0000075
+        val scale = (hexagonsDimension + 1) * 0.00000375
         val size = Point(ratio.x * scale, ratio.y * scale)
 
         lateinit var hexagon: Hexagon
@@ -266,9 +266,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         val points = firstHexagon!!.getCorners(hexagon)
 
         var color = getColor(intensity)
-
-        //TODO funzione alpha
-        val alpha = 255 //getAlpha()
+        val alpha = 255 / (hexagonsAlpha + 1)
         color = Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color))
 
         val polygon = PolygonOptions()
@@ -286,24 +284,52 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     private fun updateHexagon(polygon: Polygon, intensity: Int) {
         if (polygon.zIndex != intensity.toFloat()) {
+            var color = getColor(intensity)
+            val alpha = 255 / (hexagonsAlpha + 1)
+            color = Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color))
             polygon.zIndex = intensity.toFloat()
-            polygon.fillColor = getColor(intensity)
+            polygon.fillColor = color
             return
         }
     }
 
     private fun getColor(intensity: Int): Int {
         return when(intensity) {
-            0 -> ContextCompat.getColor(activity as Activity, R.color.none)
-            1 -> ContextCompat.getColor(activity as Activity, R.color.poor)
-            2 -> ContextCompat.getColor(activity as Activity, R.color.moderate)
-            3 -> ContextCompat.getColor(activity as Activity, R.color.good)
-            4 -> ContextCompat.getColor(activity as Activity, R.color.great)
+            0 -> when(hexagonsColors) {
+                0 -> ContextCompat.getColor(activity as Activity, R.color.none0)
+                1 -> ContextCompat.getColor(activity as Activity, R.color.none1)
+                2 -> ContextCompat.getColor(activity as Activity, R.color.none2)
+                else -> Color.TRANSPARENT
+            }
+            1 -> when(hexagonsColors) {
+                0 -> ContextCompat.getColor(activity as Activity, R.color.poor0)
+                1 -> ContextCompat.getColor(activity as Activity, R.color.poor1)
+                2 -> ContextCompat.getColor(activity as Activity, R.color.poor2)
+                else -> Color.TRANSPARENT
+            }
+            2 -> when(hexagonsColors) {
+                0 -> ContextCompat.getColor(activity as Activity, R.color.moderate0)
+                1 -> ContextCompat.getColor(activity as Activity, R.color.moderate1)
+                2 -> ContextCompat.getColor(activity as Activity, R.color.moderate2)
+                else -> Color.TRANSPARENT
+            }
+            3 -> when(hexagonsColors) {
+                0 -> ContextCompat.getColor(activity as Activity, R.color.good0)
+                1 -> ContextCompat.getColor(activity as Activity, R.color.good1)
+                2 -> ContextCompat.getColor(activity as Activity, R.color.good2)
+                else -> Color.TRANSPARENT
+            }
+            4 -> when(hexagonsColors) {
+                0 -> ContextCompat.getColor(activity as Activity, R.color.great0)
+                1 -> ContextCompat.getColor(activity as Activity, R.color.great1)
+                2 -> ContextCompat.getColor(activity as Activity, R.color.great2)
+                else -> Color.TRANSPARENT
+            }
             else -> Color.TRANSPARENT
         }
     }
 
-    private fun saveLists() {
+    fun saveLists() {
         val gson = Gson()
         for (i in 0 until 3) {
             val name = when(i) {
@@ -339,7 +365,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         file.delete()
     }
 
-    private fun loadLists() {
+    fun loadLists() {
         val gson = Gson()
         for (i in 0 until 3) {
             val name = when(i) {
@@ -368,7 +394,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun loadMap() {
+    fun loadMap() {
         // Ferma gli aggiornamenti sulla posizione nel caso siano in esecuzione
         var startBooleanState = false
         if (startBoolean) {
@@ -387,8 +413,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         // Fa ripartire gli aggiornamenti nel caso fossero in esecuzione
         if (startBooleanState) startBoolean = true
     }
-
-
 }
 
 fun setMapType() {

@@ -366,7 +366,13 @@ class MainActivity :
                 setMapType()
             }
             R.id.hexagons_dimension -> {
-                HexagonsDimension().show(fragmentManager, "hexagon dimension")
+                HexagonsDimension().show(fragmentManager, "hexagons dimension")
+            }
+            R.id.hexagons_colors -> {
+                HexagonsColors().show(fragmentManager, "hexagons colors")
+            }
+            R.id.hexagons_transparency -> {
+                HexagonsTransparency().show(fragmentManager, "hexagons transparency")
             }
         }
         invalidateOptionsMenu()
@@ -439,23 +445,48 @@ class MainActivity :
         when (int) {
             0 -> {
                 string = resources.getString(R.string.none)
-                color = ContextCompat.getColor(this, R.color.none)
+                color = when(hexagonsColors) {
+                    0 -> ContextCompat.getColor(this, R.color.none0)
+                    1 -> ContextCompat.getColor(this, R.color.none1)
+                    2 -> ContextCompat.getColor(this, R.color.none2)
+                    else -> Color.TRANSPARENT
+                }
             }
             1 -> {
                 string = resources.getString(R.string.poor)
-                color = ContextCompat.getColor(this, R.color.poor)
+                color = when (hexagonsColors) {
+                    0 -> ContextCompat.getColor(this, R.color.poor0)
+                    1 -> ContextCompat.getColor(this, R.color.poor1)
+                    2 -> ContextCompat.getColor(this, R.color.poor2)
+                    else -> Color.TRANSPARENT
+                }
             }
             2 -> {
                 string = resources.getString(R.string.moderate)
-                color = ContextCompat.getColor(this, R.color.moderate)
+                color = when(hexagonsColors) {
+                    0 -> ContextCompat.getColor(this, R.color.moderate0)
+                    1 -> ContextCompat.getColor(this, R.color.moderate1)
+                    2 -> ContextCompat.getColor(this, R.color.moderate2)
+                    else -> Color.TRANSPARENT
+                }
             }
             3 -> {
                 string = resources.getString(R.string.good)
-                color = ContextCompat.getColor(this, R.color.good)
+                color = when(hexagonsColors) {
+                    0 -> ContextCompat.getColor(this, R.color.good0)
+                    1 -> ContextCompat.getColor(this, R.color.good1)
+                    2 -> ContextCompat.getColor(this, R.color.good2)
+                    else -> Color.TRANSPARENT
+                }
             }
             4 -> {
                 string = resources.getString(R.string.great)
-                color = ContextCompat.getColor(this, R.color.great)
+                color = when(hexagonsColors) {
+                    0 -> ContextCompat.getColor(this, R.color.great0)
+                    1 -> ContextCompat.getColor(this, R.color.great1)
+                    2 -> ContextCompat.getColor(this, R.color.great2)
+                    else -> Color.TRANSPARENT
+                }
             }
             else -> {
                 string = "-1"

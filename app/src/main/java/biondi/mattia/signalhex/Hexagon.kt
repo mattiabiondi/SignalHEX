@@ -3,10 +3,8 @@ package biondi.mattia.signalhex
 import android.app.AlertDialog
 import android.app.Dialog
 import android.app.DialogFragment
-import android.app.FragmentManager
 import android.content.DialogInterface
 import android.os.Bundle
-import android.widget.Toast
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.geometry.Point
 import kotlin.math.*
@@ -92,10 +90,36 @@ class HexagonsDimension: DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(activity)
         builder.setTitle("Hexagons dimension")
-                .setSingleChoiceItems(R.array.hexagons_dimension_list, hexagonDimension, DialogInterface.OnClickListener { dialog, which ->
-                    hexagonDimension = which
-                    // todo riavvia l'activity
+                .setSingleChoiceItems(R.array.hexagons_dimension_list, hexagonsDimension, DialogInterface.OnClickListener { dialog, which ->
+                    hexagonsDimension = which
                     dismiss()
+                    activity.recreate() //TODO penso si possa fare di meglio
+                })
+        return builder.create()
+    }
+}
+
+class HexagonsColors: DialogFragment() {
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val builder = AlertDialog.Builder(activity)
+        builder.setTitle("Hexagons colors")
+                .setSingleChoiceItems(R.array.hexagons_colors_list, hexagonsColors, DialogInterface.OnClickListener { dialog, which ->
+                    hexagonsColors = which
+                    dismiss()
+                    activity.recreate() //TODO penso si possa fare di meglio
+                })
+        return builder.create()
+    }
+}
+
+class HexagonsTransparency: DialogFragment() {
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val builder = AlertDialog.Builder(activity)
+        builder.setTitle("Hexagons transparency")
+                .setSingleChoiceItems(R.array.hexagons_transparency_list, hexagonsAlpha, DialogInterface.OnClickListener { dialog, which ->
+                    hexagonsAlpha = which
+                    dismiss()
+                    activity.recreate() //TODO penso si possa fare di meglio
                 })
         return builder.create()
     }

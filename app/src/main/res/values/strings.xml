@@ -39,6 +39,18 @@
         <item>Big</item>
         <item>Huge</item>
     </string-array>
+    <string-array name="hexagons_colors_list">
+        <item>Red to green</item>
+        <item>Blue to orange</item>
+        <item>Violet to yellow</item>
+    </string-array>
+    <string-array name="hexagons_transparency_list">
+        <item>0%</item>
+        <item>25%</item>
+        <item>50%</item>
+        <item>75%</item>
+        <item>100%</item>
+    </string-array>
     <string name="hexagons_transparency">Transparency</string>
     <string name="hexagons_colors">Colors</string>
 </resources>
