@@ -10,7 +10,6 @@ import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
@@ -74,8 +73,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     override fun onStart() {
         super.onStart()
         activity!!.invalidateOptionsMenu()
-        // Imposta il titolo dell'Activity
-        //activity.setTitle(R.string.)
 
         // Inizializzazione del FusedLocationProvider
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(activity as Activity)
@@ -119,7 +116,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         map = googleMap
 
         // TODO funzione per cambiare tipo di mappa (magari nelle impostazioni)
-        //map!!.mapType = GoogleMap.MAP_TYPE_HYBRID
+        map!!.mapType = GoogleMap.MAP_TYPE_HYBRID
 
         // Ottiene la posizione attuale
         getLocation()
@@ -147,6 +144,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         try {
             map?.isMyLocationEnabled = true
             map?.uiSettings?.isMyLocationButtonEnabled = true
+            map?.uiSettings?.isZoomControlsEnabled = true
         } catch (e: SecurityException) {
         }
     }

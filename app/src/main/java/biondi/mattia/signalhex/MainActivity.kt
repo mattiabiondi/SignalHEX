@@ -355,8 +355,9 @@ class MainActivity :
                 wifi_switch.isChecked = wifiBoolean
                 setVisibility(wifiPolygon, wifiBoolean)
             }
-            R.id.settings -> {
+            R.id.map_type -> {
                 // TODO: implementa impostazioni
+                MapType().show(fragmentManager, "map_type")
             }
         }
         invalidateOptionsMenu()

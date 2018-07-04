@@ -8,6 +8,11 @@
     <string name="lte">LTE</string>
     <string name="wifi">Wi-Fi</string>
     <string name="settings">Settings</string>
+    <string name="hexagons">Hexagons</string>
+    <string name="hexagons_dimension">Dimension</string>
+    <string name="hexagons_colors">Colors</string>
+    <string name="hexagons_transparency">Transparency</string>
+    <string name="map_type">Map type</string>
     <string name="refresh">Refresh</string>
     <string name="alert_dialog_title">Reset Heatmap</string>
     <string name="alert_dialog_message">Are you sure?</string>

@@ -35,11 +35,27 @@
         </item>
     </group>
 
-    <group
-        android:id="@+id/settings_menu">
-        <item
-            android:id="@+id/settings"
-            android:icon="@drawable/ic_settings"
-            android:title="@string/settings"/>
+    <item
+        android:id="@+id/map_type"
+        android:icon="@drawable/ic_map"
+        android:title="@string/map_type"/>
+
+    <group>
+        <item android:title="@string/hexagons">
+            <menu>
+                <item
+                    android:id="@+id/hexagons_dimension"
+                    android:icon="@drawable/ic_zoom_out"
+                    android:title="@string/hexagons_dimension"/>
+                <item
+                    android:id="@+id/hexagons_colors"
+                    android:icon="@drawable/ic_colors"
+                    android:title="@string/hexagons_colors"/>
+                <item
+                    android:id="@+id/hexagons_transparency"
+                    android:icon="@drawable/ic_blur"
+                    android:title="@string/hexagons_transparency"/>
+            </menu>
+        </item>
     </group>
 </menu>
