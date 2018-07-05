@@ -10,7 +10,6 @@ import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
@@ -18,7 +17,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.google.maps.android.geometry.Point
 import kotlinx.android.synthetic.main.content_layout.*
-import kotlinx.android.synthetic.main.map_satellite_layout.*
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -48,8 +46,11 @@ var firstHexagon: HexagonLayout? = null
 // La mappa
 var map: GoogleMap? = null
 
-var hexagonsDimension = 1 //TODO da salvare in memoria e rimuovere la possibilità se no permission
+// Dimensione degli esagoni
+var hexagonsDimension = 1
+// Colore degli esagoni
 var hexagonsColors = 0
+// Trasparenza degli esagoni
 var hexagonsAlpha = 0
 
 class MapFragment: Fragment(), OnMapReadyCallback {
@@ -60,14 +61,14 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     // Posizione attuale
     private var currentLocation: Location? = null
     // Chiavi per memorizzare lo stato dell'activity
-    val CURRENT_LOCATION_KEY = "current-location"
+    private val currentLocationKey = "current-location"
 
     // Richiesta di posizione
     private lateinit var locationRequest: LocationRequest
 
     // Intervalli di tempo in cui si aggiorna la posizione
-    private val INTERVAL = 1000L
-    private val FASTEST_INTERVAL = 1000L
+    private val _interval = 1000L
+    private val _fastestInterval = 1000L
 
     // Comandi da eseguire dopo aver ottenuto la posizione
     private lateinit var locationCallback: LocationCallback
@@ -84,7 +85,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(activity as Activity)
         // Recupera il Fragment in cui mostrare la mappa
         // Utilizza childFragmentManager perchè il Map Fragment è un Fragment nel Fragment
-        // Nota: è necessario il cast a MapFragment in quanto la funzione ritorna un Fragment
+        // Nota: è necessario il cast a SupportMapFragment in quanto la funzione ritorna un Fragment
         val mapFragment = childFragmentManager.findFragmentById(R.id.map_fragment) as SupportMapFragment
         // Acquisisce la mappa e la inizializza quando l'istanza GoogleMap è pronta per essere utilizzata
         mapFragment.getMapAsync(this)
@@ -96,33 +97,46 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     override fun onResume() {
         super.onResume()
+
+        // Carica le impostazioni
         loadPreferences()
+
+        // Carica le liste degli esagoni
         loadLists()
+
+        // Avvia le richieste di aggiornamenti di posizione
         startLocationUpdates()
     }
 
     override fun onPause() {
         super.onPause()
+
+        // Ferma le richieste di aggiornamenti di posizione
         stopLocationUpdates()
+
+        // Salva le liste degli esagoni
         saveLists()
+
+        // Salva le impostazioni
         savePreferences()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putParcelable(CURRENT_LOCATION_KEY, currentLocation)
+        outState.putParcelable(currentLocationKey, currentLocation)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         if (savedInstanceState != null) {
-            currentLocation = savedInstanceState.getParcelable(CURRENT_LOCATION_KEY)
+            currentLocation = savedInstanceState.getParcelable(currentLocationKey)
         }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
+        // Imposta il tipo di mappa (normale o satellitare)
         setMapType()
         // Ottiene la posizione attuale
         getLocation()
@@ -145,6 +159,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
+    // Aggiorna l'interfaccia utente (i controlli sulla mappa)
     private fun updateLocationUI() {
         map ?: return
         try {
@@ -157,8 +172,8 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     private fun createLocationRequest() {
         locationRequest = LocationRequest().apply {
-            interval = INTERVAL
-            fastestInterval = FASTEST_INTERVAL
+            interval = _interval
+            fastestInterval = _fastestInterval
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
     }
@@ -170,7 +185,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                 for (location in locationResult.locations) {
                     // Aggiorna la posizione attuale
                     currentLocation = location
-                    activity!!.coordinatesText.text = (location.latitude).toString() + ", " + (location.longitude).toString()
+                    activity!!.coordinatesText.text = (location.latitude).toString() + ", " + (location.longitude).toString() // Qui devo concatenare per forza le due stringhe per avere come separatore il punto al posto della virgola
 
                     if (startBoolean) saveLocation(LatLng(location.latitude, location.longitude), currentNetwork, currentIntensity, false)
                 }
@@ -193,6 +208,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         fusedLocationProviderClient.removeLocationUpdates(locationCallback)
     }
 
+    // Salva la posizione ottenuta
     private fun saveLocation(location: LatLng, network: String, intensity: Int, loading: Boolean) {
         val hexagon = createHexagon(location)
 
@@ -218,6 +234,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
+    // Crea l'esagono sulla mappa
     private fun createHexagon(location: LatLng): Hexagon {
         val orientation = layout_flat
         val ratio = Point(0.7, 1.0) // Latitudine e longitudine non hanno un aspect ratio regolare
@@ -234,6 +251,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         return hexagon
     }
 
+    // Decide se deve creare un nuovo esagono o se è dentro ad un esagono già esistente
     private fun addOrUpdateHexagon(hexagonList: MutableList<Hexagon>, polygonList: MutableList<Polygon>, hexagon: Hexagon, intensity: Int, boolean: Boolean) {
         val index = hexagonExists(polygonList, hexagon)
 
@@ -251,6 +269,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
+    // Controlla se si è già dentro ad un esagono
     private fun hexagonExists(list: List<Polygon>, hexagon: Hexagon): Int {
         val x = abs(hexagon.x)
         val y = abs(hexagon.y)
@@ -265,6 +284,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         return -1
     }
 
+    // Aggiunge un esagono sulla mappa
     private fun addHexagon(polygonList: MutableList<Polygon>, hexagonList: MutableList<Hexagon>, hexagon: Hexagon, intensity: Int, boolean: Boolean) {
         val points = firstHexagon!!.getCorners(hexagon)
 
@@ -285,6 +305,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         hexagonList.add(hexagon)
     }
 
+    // Aggiorna l'esagono in cui siamo
     private fun updateHexagon(polygon: Polygon, intensity: Int) {
         if (polygon.zIndex != intensity.toFloat()) {
             var color = getColor(intensity)
@@ -296,6 +317,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
+    // Ottiene il colore dell'esagono
     private fun getColor(intensity: Int): Int {
         return when(intensity) {
             0 -> when(hexagonsColors) {
@@ -332,6 +354,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
+    // Salva le liste in memoria
     private fun saveLists() {
         val gson = Gson()
         for (i in 0 until 3) {
@@ -356,18 +379,21 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
+    // Controlla se il File esiste già
     private fun exists(fileName: String): Boolean {
         val path = context!!.filesDir.absolutePath + "/" + fileName
         val file = File(path)
         return file.exists()
     }
 
+    // Cancella il File in memoria
     private fun delete(fileName: String) {
         val path = context!!.filesDir.absolutePath + "/" + fileName
         val file = File(path)
         file.delete()
     }
 
+    // Carica le liste dalla memoria
     private fun loadLists() {
         val gson = Gson()
         for (i in 0 until 3) {
@@ -397,6 +423,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
+    // Carica la mappa
     private fun loadMap() {
         // Ferma gli aggiornamenti sulla posizione nel caso siano in esecuzione
         var startBooleanState = false
@@ -417,6 +444,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         if (startBooleanState) startBoolean = true
     }
 
+    // Salva le preferenze in memoria
     private fun savePreferences() {
         val sharedPref = activity!!.getPreferences(Context.MODE_PRIVATE) ?: return
         with (sharedPref.edit()) {
@@ -436,6 +464,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         //activity!!.invalidateOptionsMenu()
     }
 
+    // Carica le preferenze dalla memoria
     private fun loadPreferences() {
         val sharedPref = activity!!.getPreferences(Context.MODE_PRIVATE) ?: return
 
@@ -460,6 +489,7 @@ fun setMapType() {
         map!!.mapType = GoogleMap.MAP_TYPE_NORMAL
 }
 
+// Svuota tutte le liste
 fun clearLists(loading: Boolean) {
     if (!loading) {
         locationList.clear()
@@ -480,6 +510,7 @@ fun clearLists(loading: Boolean) {
     wifiHexagon.clear()
 }
 
+// Rimuove tutti gli esagoni
 fun removeAllHexagons() {
     for (i in 0 until 4) {
         val polygonList = when (i) {

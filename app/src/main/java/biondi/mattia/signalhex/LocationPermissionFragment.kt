@@ -14,13 +14,17 @@ import kotlinx.android.synthetic.main.location_permission_layout.*
 class LocationPermissionFragment: Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        // Riempie la View con UMTS HexagonLayout
+        // Riempie la View con location permission layout
         return inflater.inflate(R.layout.location_permission_layout, container, false)
     }
 
     override fun onStart() {
         super.onStart()
+
+        // Se siamo qua allora i tasti vanno disattivati
         activity!!.invalidateOptionsMenu()
+
+        // Bottone a schermo per richiedere i permessi
         val button = locationPermissionRequestButton
         button.setOnClickListener { getLocationPermission() }
     }
@@ -35,6 +39,7 @@ class LocationPermissionFragment: Fragment() {
         }
     }
 
+    // Aggiunge il Fragment corretto
     private fun addFragment() {
         if (locationPermission()){
             fragmentManager!!.beginTransaction().replace(R.id.fragment_frame, MapFragment()).commit()
@@ -43,6 +48,7 @@ class LocationPermissionFragment: Fragment() {
         }
     }
 
+    // Controlla se si hanno i permessi di posizione
     private fun locationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(activity!!.applicationContext, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }

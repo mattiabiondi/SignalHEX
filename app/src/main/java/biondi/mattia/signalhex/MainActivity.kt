@@ -1,6 +1,5 @@
 package biondi.mattia.signalhex
 
-import android.app.FragmentManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -38,22 +37,26 @@ const val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
 // Boolean che controlla se deve ottenere o meno i dati
 var startBoolean = false
 
-// Booleani che controllano quale mappa visualizzare
+// Boolean che controllano quale mappa visualizzare
 var edgeBoolean = true
 var umtsBoolean = true
 var lteBoolean = true
 var wifiBoolean = true
 
+// Boolean per visualizzare o meno la mappa satellitare
+var satelliteBoolean = false
+
+// La rete attuale a cui si è collegati
 var currentNetwork = R.string.none.toString()
+// L'intensità del segnale della rete attuale
 var currentIntensity = 0
 
-var satelliteBoolean = false
 
 class MainActivity :
         AppCompatActivity(),
         NavigationView.OnNavigationItemSelectedListener {
 
-    // Costrutto del Connectivity Manager
+    // Costrutto dei Manager
     private var connectivityManager: ConnectivityManager? = null
     private lateinit var wifiManager: WifiManager
     private lateinit var telephonyManager: TelephonyManager
@@ -62,11 +65,14 @@ class MainActivity :
     private lateinit var networkRequest: NetworkRequest
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
 
+    // Boolean per sapere se stiamo richiedendo o meno aggiornamenti dalla rete
     private var requestingNetworkUpdates = false
 
+    // L'intensità del segnale della rete attuale
     private var networkIntensity = 0
 
-    private val PRECISION = 5
+    // Con quanta precisione l'intensità del segnale viene analizzata
+    private val precision = 5
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,7 +91,7 @@ class MainActivity :
         // Imposta un Listener sulla barra di navigazione
         nav_view.setNavigationItemSelectedListener(this)
 
-        // Inizializzazione del ConnectivityManager
+        // Inizializzazione dei Manager
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
@@ -96,20 +102,28 @@ class MainActivity :
 
     override fun onResume() {
         super.onResume()
+
+        // Aggiunge il fragment corretto
         addFragment()
+
+        // Avvia la richiesta di aggiornamenti del segnale
         startNetworkUpdates()
     }
 
     override fun onPause() {
         super.onPause()
+
+        // Ferma gli aggiornamenti del segnale
         stopNetworkUpdates()
     }
 
+    // Controlla se abbiamo o no i permessi
     private fun locationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun addFragment() {
+        // Se si possiedono i permessi di posizione allora si visualizza la mappa, altrimenti si visualizza il Fragment che richiede i permessi
         if (locationPermission()){
             supportFragmentManager.beginTransaction().replace(R.id.fragment_frame, MapFragment()).commit()
         } else {
@@ -134,6 +148,7 @@ class MainActivity :
         }
     }
 
+    // Crea la richiesta di rete
     private fun createNetworkRequest() {
         networkRequest = NetworkRequest.Builder()
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -182,7 +197,7 @@ class MainActivity :
                             typeText1.text = currentNetwork
                             intensity = getWifiIntensity()
                             currentIntensity = intensity
-                            intensityText1.text = getString(R.string.intensity1, intensity, PRECISION-1)
+                            intensityText1.text = getString(R.string.intensity1, intensity, precision-1)
                             getQuality(intensity)
                         }
                     } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
@@ -194,7 +209,7 @@ class MainActivity :
                             typeText1.text = currentNetwork
                             intensity = networkIntensity
                             currentIntensity = intensity
-                            intensityText1.text = getString(R.string.intensity1,  intensity, PRECISION-1)
+                            intensityText1.text = getString(R.string.intensity1,  intensity, precision-1)
                             getQuality(intensity)
                         }
                     }
@@ -202,7 +217,7 @@ class MainActivity :
             }
 
             private fun networkLost() {
-                // La funzione viene chiamata riferendosi alla rete mobile quando ci si connette al Wi-Fi,
+                // La funzione viene chiamata quando da rete mobile ci si connette al Wi-Fi, "perdendo" quindi la rete mobile,
                 // mostrando informazioni sbagliate a schermo. Si assicura quindi che realmente non ci sia nessuna rete
                 // attiva
                 val networkInfo = connectivityManager!!.activeNetworkInfo
@@ -237,6 +252,40 @@ class MainActivity :
         }
     }
 
+    // Quando si preme il tasto back
+    override fun onBackPressed() {
+        if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+            drawer_layout.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.app_bar_menu, menu)
+        return true
+    }
+
+    // Funzione chiamata quando si creano i tasti del menù
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        if (locationPermission()) {
+            menu.findItem(R.id.start_item).isEnabled = true
+            menu.findItem(R.id.refresh_item).isEnabled = true
+            if (startBoolean) menu.findItem(R.id.start_item).setIcon(R.drawable.ic_pause)
+            else menu.findItem(R.id.start_item).setIcon(R.drawable.ic_play_enabled)
+        } else {
+            startBoolean = false
+            menu.findItem(R.id.start_item).setIcon(R.drawable.ic_play_disabled)
+            menu.findItem(R.id.start_item).isEnabled = false
+
+            menu.findItem(R.id.refresh_item).setIcon(R.drawable.ic_refresh_disabled)
+            menu.findItem(R.id.refresh_item).isEnabled = false
+        }
+        updateIcons()
+        return true
+    }
+
+    // Funzione per aggiornare le icone del menù
     private fun updateIcons() {
         val edgeItem = nav_view.menu.findItem(R.id.edge_item)
         val umtsItem = nav_view.menu.findItem(R.id.umts_item)
@@ -312,37 +361,7 @@ class MainActivity :
         }
     }
 
-    override fun onBackPressed() {
-        if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
-            drawer_layout.closeDrawer(GravityCompat.START)
-        } else {
-            super.onBackPressed()
-        }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.app_bar_menu, menu)
-        return true
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        if (locationPermission()) {
-            menu.findItem(R.id.start_item).isEnabled = true
-            menu.findItem(R.id.refresh_item).isEnabled = true
-            if (startBoolean) menu.findItem(R.id.start_item).setIcon(R.drawable.ic_pause)
-            else menu.findItem(R.id.start_item).setIcon(R.drawable.ic_play_enabled)
-        } else {
-            startBoolean = false
-            menu.findItem(R.id.start_item).setIcon(R.drawable.ic_play_disabled)
-            menu.findItem(R.id.start_item).isEnabled = false
-
-            menu.findItem(R.id.refresh_item).setIcon(R.drawable.ic_refresh_disabled)
-            menu.findItem(R.id.refresh_item).isEnabled = false
-        }
-        updateIcons()
-        return true
-    }
-
+    // Funzione chiamata quando si preme un oggetto del menù in alto
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.start_item -> {
@@ -368,6 +387,7 @@ class MainActivity :
         return true
     }
 
+    // Funzione chiamata quando si preme un oggetto del menù laterale
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Aggiorna le icone del Navigation Drawer quando vengono selezionate
         when (item.itemId) {
@@ -406,33 +426,39 @@ class MainActivity :
                 HexagonsTransparency().show(fragmentManager, "hexagons transparency")
             }
         }
-        invalidateOptionsMenu()
+        invalidateOptionsMenu() // Richiama onPrepareOptionsMenu
+
         // Chiude il Navigation Drawer
         //drawer_layout.closeDrawer(GravityCompat.START)
+
         return true
     }
 
+    // Si occupa di rendere visibili o meno i poligoni sulla mappa
     private fun setVisibility(list: MutableList<Polygon>, boolean: Boolean) {
         for (i in 0 until list.size) {
             list[i].isVisible = boolean
         }
     }
 
+    // Ottiene il nome della rete Wi-Fi
     private fun getWifiName(): String {
         var string = wifiManager.connectionInfo.ssid
         string = string.drop(1).dropLast(1) //Rimuove le virgolette dal nome
         return string
     }
 
+    //Ottiene l'intensità della rete Wi-Fi
     private fun getWifiIntensity(): Int {
         var intensity = 0
         val wifiInfo = wifiManager.connectionInfo
         if (wifiInfo != null) {
-            intensity = WifiManager.calculateSignalLevel(wifiInfo.rssi, PRECISION)
+            intensity = WifiManager.calculateSignalLevel(wifiInfo.rssi, precision)
         }
         return intensity
     }
 
+    // Crea il Phone State Listener
     private fun createPhoneStateListener() {
         phoneStateListener = object : PhoneStateListener() {
             override fun onSignalStrengthsChanged(signalStrength: SignalStrength) {
@@ -441,10 +467,12 @@ class MainActivity :
         }
     }
 
+    // Ottiene il nome dell'operatore di rete
     private fun getCarrierName(): String {
         return telephonyManager.networkOperatorName
     }
 
+    // Ottiene il tipo di rete mobile a cui si è collegati
     private fun getNetworkType(): String {
         when (telephonyManager.networkType) {
             TelephonyManager.NETWORK_TYPE_GPRS,
@@ -470,6 +498,7 @@ class MainActivity :
         }
     }
 
+    // Mostra a schermo la qualità del segnale
     private fun getQuality(int: Int) {
         lateinit var string: String
         val color: Int
