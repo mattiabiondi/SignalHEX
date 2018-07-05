@@ -18,6 +18,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.google.maps.android.geometry.Point
 import kotlinx.android.synthetic.main.content_layout.*
+import kotlinx.android.synthetic.main.map_satellite_layout.*
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -95,6 +96,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     override fun onResume() {
         super.onResume()
+        loadPreferences()
         loadLists()
         startLocationUpdates()
     }
@@ -103,6 +105,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         super.onPause()
         stopLocationUpdates()
         saveLists()
+        savePreferences()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -329,7 +332,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
-    fun saveLists() {
+    private fun saveLists() {
         val gson = Gson()
         for (i in 0 until 3) {
             val name = when(i) {
@@ -365,7 +368,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         file.delete()
     }
 
-    fun loadLists() {
+    private fun loadLists() {
         val gson = Gson()
         for (i in 0 until 3) {
             val name = when(i) {
@@ -394,7 +397,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
     }
 
-    fun loadMap() {
+    private fun loadMap() {
         // Ferma gli aggiornamenti sulla posizione nel caso siano in esecuzione
         var startBooleanState = false
         if (startBoolean) {
@@ -412,6 +415,40 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         }
         // Fa ripartire gli aggiornamenti nel caso fossero in esecuzione
         if (startBooleanState) startBoolean = true
+    }
+
+    private fun savePreferences() {
+        val sharedPref = activity!!.getPreferences(Context.MODE_PRIVATE) ?: return
+        with (sharedPref.edit()) {
+            putBoolean(getString(R.string.edge), edgeBoolean)
+            putBoolean(getString(R.string.umts), umtsBoolean)
+            putBoolean(getString(R.string.lte), lteBoolean)
+            putBoolean(getString(R.string.wifi), wifiBoolean)
+
+            putBoolean(getString(R.string.map_satellite), satelliteBoolean)
+
+            putInt(getString(R.string.hexagons_dimension), hexagonsDimension)
+            putInt(getString(R.string.hexagons_colors), hexagonsColors)
+            putInt(getString(R.string.hexagons_transparency), hexagonsAlpha)
+
+            apply()
+        }
+        //activity!!.invalidateOptionsMenu()
+    }
+
+    private fun loadPreferences() {
+        val sharedPref = activity!!.getPreferences(Context.MODE_PRIVATE) ?: return
+
+        edgeBoolean = sharedPref.getBoolean(getString(R.string.edge), true)
+        umtsBoolean = sharedPref.getBoolean(getString(R.string.umts), true)
+        lteBoolean = sharedPref.getBoolean(getString(R.string.lte), true)
+        wifiBoolean = sharedPref.getBoolean(getString(R.string.wifi), true)
+
+        satelliteBoolean = sharedPref.getBoolean(getString(R.string.map_satellite), false)
+
+        hexagonsDimension = sharedPref.getInt(getString(R.string.hexagons_dimension), 1)
+        hexagonsColors = sharedPref.getInt(getString(R.string.hexagons_colors), 0)
+        hexagonsAlpha = sharedPref.getInt(getString(R.string.hexagons_transparency), 0)
     }
 }
 

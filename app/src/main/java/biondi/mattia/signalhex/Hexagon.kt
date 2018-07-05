@@ -93,7 +93,7 @@ class HexagonsDimension: DialogFragment() {
                 .setSingleChoiceItems(R.array.hexagons_dimension_list, hexagonsDimension, DialogInterface.OnClickListener { dialog, which ->
                     hexagonsDimension = which
                     dismiss()
-                    activity.recreate() //TODO penso si possa fare di meglio
+                    activity.recreate() //TODO penso si possa fare di meglio 1
                 })
         return builder.create()
     }
@@ -106,7 +106,7 @@ class HexagonsColors: DialogFragment() {
                 .setSingleChoiceItems(R.array.hexagons_colors_list, hexagonsColors, DialogInterface.OnClickListener { dialog, which ->
                     hexagonsColors = which
                     dismiss()
-                    activity.recreate() //TODO penso si possa fare di meglio
+                    activity.recreate() //TODO penso si possa fare di meglio 2
                 })
         return builder.create()
     }
@@ -119,7 +119,7 @@ class HexagonsTransparency: DialogFragment() {
                 .setSingleChoiceItems(R.array.hexagons_transparency_list, hexagonsAlpha, DialogInterface.OnClickListener { dialog, which ->
                     hexagonsAlpha = which
                     dismiss()
-                    activity.recreate() //TODO penso si possa fare di meglio
+                    activity.recreate() //TODO penso si possa fare di meglio 3
                 })
         return builder.create()
     }

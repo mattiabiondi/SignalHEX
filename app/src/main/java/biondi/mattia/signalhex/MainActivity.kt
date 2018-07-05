@@ -26,6 +26,7 @@ import kotlinx.android.synthetic.main.edge_switch_layout.view.*
 import kotlinx.android.synthetic.main.lte_switch_layout.*
 import kotlinx.android.synthetic.main.lte_switch_layout.view.*
 import kotlinx.android.synthetic.main.map_satellite_layout.*
+import kotlinx.android.synthetic.main.map_satellite_layout.view.*
 import kotlinx.android.synthetic.main.umts_switch_layout.*
 import kotlinx.android.synthetic.main.umts_switch_layout.view.*
 import kotlinx.android.synthetic.main.wifi_switch_layout.*
@@ -242,6 +243,18 @@ class MainActivity :
         val lteItem = nav_view.menu.findItem(R.id.lte_item)
         val wifiItem = nav_view.menu.findItem(R.id.wifi_item)
 
+        val satelliteItem = nav_view.menu.findItem(R.id.map_satellite)
+
+        val dimensionItem = nav_view.menu.findItem(R.id.hexagons_dimension)
+        val colorsItem = nav_view.menu.findItem(R.id.hexagons_colors)
+        val transparencyItem = nav_view.menu.findItem(R.id.hexagons_transparency)
+
+        edgeItem.actionView.edge_switch.isChecked = edgeBoolean
+        umtsItem.actionView.umts_switch.isChecked = umtsBoolean
+        lteItem.actionView.lte_switch.isChecked = lteBoolean
+        wifiItem.actionView.wifi_switch.isChecked = wifiBoolean
+        satelliteItem.actionView.map_satellite_checkbox.isChecked = satelliteBoolean
+
         if (locationPermission()) {
             edgeItem.isEnabled = true
             edgeItem.actionView.edge_switch.isEnabled = true
@@ -262,22 +275,40 @@ class MainActivity :
             wifiItem.actionView.wifi_switch.isEnabled = true
             if(wifiBoolean) wifiItem.setIcon(R.drawable.ic_wifi_on)
             else wifiItem.setIcon(R.drawable.ic_wifi_off)
+
+            satelliteItem.isEnabled = true
+            satelliteItem.actionView.map_satellite_checkbox.isEnabled = true
+
+            dimensionItem.isEnabled = true
+            colorsItem.isEnabled = true
+            transparencyItem.isEnabled = true
         } else {
             edgeItem.isEnabled = false
             edgeItem.actionView.edge_switch.isEnabled = false
-            edgeItem.setIcon(R.drawable.ic_cellular_off)
+            if(edgeBoolean) edgeItem.setIcon(R.drawable.ic_cellular_on)
+            else edgeItem.setIcon(R.drawable.ic_cellular_off1)
 
             umtsItem.isEnabled = false
             umtsItem.actionView.umts_switch.isEnabled = false
-            umtsItem.setIcon(R.drawable.ic_cellular_off)
+            if(umtsBoolean) umtsItem.setIcon(R.drawable.ic_cellular_on)
+            else umtsItem.setIcon(R.drawable.ic_cellular_off1)
 
             lteItem.isEnabled = false
             lteItem.actionView.lte_switch.isEnabled = false
-            lteItem.setIcon(R.drawable.ic_cellular_off)
+            if(lteBoolean) lteItem.setIcon(R.drawable.ic_cellular_on)
+            else lteItem.setIcon(R.drawable.ic_cellular_off1)
 
             wifiItem.isEnabled = false
             wifiItem.actionView.wifi_switch.isEnabled = false
-            wifiItem.setIcon(R.drawable.ic_wifi_off)
+            if(wifiBoolean) wifiItem.setIcon(R.drawable.ic_wifi_on)
+            else wifiItem.setIcon(R.drawable.ic_wifi_off1)
+
+            satelliteItem.isEnabled = false
+            satelliteItem.actionView.map_satellite_checkbox.isEnabled = false
+
+            dimensionItem.isEnabled = false
+            colorsItem.isEnabled = false
+            transparencyItem.isEnabled = false
         }
     }
 
