@@ -1,17 +1,17 @@
 package biondi.mattia.signalhex
 
 import android.app.Activity
-import android.support.v4.app.Fragment
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
+import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.location_permission_layout.*
 
-class LocationPermissionFragment: Fragment() {
+class LocationPermissionFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Riempie la View con location permission layout
@@ -41,7 +41,7 @@ class LocationPermissionFragment: Fragment() {
 
     // Aggiunge il Fragment corretto
     private fun addFragment() {
-        if (locationPermission()){
+        if (locationPermission()) {
             fragmentManager!!.beginTransaction().replace(R.id.fragment_frame, MapFragment()).commit()
         } else {
             fragmentManager!!.beginTransaction().replace(R.id.fragment_frame, LocationPermissionFragment()).commit()

@@ -38,13 +38,13 @@ class Orientation(val f0: Double, val f1: Double, val f2: Double, val f3: Double
 
 // Esagono con lato sopra e sotto
 val layout_flat = Orientation(sqrt(3.0), sqrt(3.0) / 2.0, 0.0, 3.0 / 2.0,
-                            sqrt(3.0) / 3.0, -1.0 / 3.0, 0.0, 2.0 / 3.0,
-                                0.5)
+        sqrt(3.0) / 3.0, -1.0 / 3.0, 0.0, 2.0 / 3.0,
+        0.5)
 
 // Esagono con spigolo sopra e sotto
 val layout_pointy = Orientation(3.0 / 2.0, 0.0, sqrt(3.0) / 2.0, sqrt(3.0),
-                                2.0 / 3.0, 0.0, -1.0 / 3.0, sqrt(3.0) / 3.0,
-                                0.0)
+        2.0 / 3.0, 0.0, -1.0 / 3.0, sqrt(3.0) / 3.0,
+        0.0)
 
 // L'esagono vero e proprio
 class HexagonLayout(val orientation: Orientation, val size: Point, private val origin: LatLng) {
@@ -65,7 +65,7 @@ class HexagonLayout(val orientation: Orientation, val size: Point, private val o
         return Hexagon(x, y)
     }
 
-    // Caclola la posizione dello spigolo
+    // Calcola la posizione dello spigolo
     private fun cornerOffset(corner: Int): LatLng {
         val angle = 2.0 * PI * (orientation.start_angle + corner) / 6
         return LatLng(size.x * cos(angle), size.y * sin(angle))
@@ -95,16 +95,16 @@ class HexagonLayout(val orientation: Orientation, val size: Point, private val o
         val zDiff = abs(rz - hexagon.z)
 
         if ((xDiff > yDiff) && (xDiff > zDiff))
-            rx = -ry-rz
+            rx = -ry - rz
         else if (yDiff > zDiff)
-            ry = -rx-rz
+            ry = -rx - rz
 
         return Hexagon(rx, ry)
     }
 }
 
 // Modifica le dimensioni degli esagoni
-class HexagonsDimension: DialogFragment() {
+class HexagonsDimension : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(activity)
         builder.setTitle("Hexagons dimension")
@@ -118,7 +118,7 @@ class HexagonsDimension: DialogFragment() {
 }
 
 // Modifica i colori degli esagoni
-class HexagonsColors: DialogFragment() {
+class HexagonsColors : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(activity)
         builder.setTitle("Hexagons colors")
@@ -132,7 +132,7 @@ class HexagonsColors: DialogFragment() {
 }
 
 // Modifica la trasparenza degli esagoni
-class HexagonsTransparency: DialogFragment() {
+class HexagonsTransparency : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(activity)
         builder.setTitle("Hexagons transparency")

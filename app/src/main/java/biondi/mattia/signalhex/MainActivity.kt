@@ -12,18 +12,20 @@ import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
-import android.telephony.*
+import android.telephony.PhoneStateListener
+import android.telephony.SignalStrength
+import android.telephony.TelephonyManager
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import com.google.android.gms.maps.model.Polygon
-import kotlinx.android.synthetic.main.main_layout.*
 import kotlinx.android.synthetic.main.app_bar_layout.*
 import kotlinx.android.synthetic.main.content_layout.*
 import kotlinx.android.synthetic.main.edge_switch_layout.*
 import kotlinx.android.synthetic.main.edge_switch_layout.view.*
 import kotlinx.android.synthetic.main.lte_switch_layout.*
 import kotlinx.android.synthetic.main.lte_switch_layout.view.*
+import kotlinx.android.synthetic.main.main_layout.*
 import kotlinx.android.synthetic.main.map_satellite_layout.*
 import kotlinx.android.synthetic.main.map_satellite_layout.view.*
 import kotlinx.android.synthetic.main.umts_switch_layout.*
@@ -51,7 +53,6 @@ var currentNetwork = R.string.none.toString()
 // L'intensità del segnale della rete attuale
 var currentIntensity = 0
 
-
 class MainActivity :
         AppCompatActivity(),
         NavigationView.OnNavigationItemSelectedListener {
@@ -73,7 +74,6 @@ class MainActivity :
 
     // Con quanta precisione l'intensità del segnale viene analizzata
     private val precision = 5
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,7 +124,7 @@ class MainActivity :
 
     private fun addFragment() {
         // Se si possiedono i permessi di posizione allora si visualizza la mappa, altrimenti si visualizza il Fragment che richiede i permessi
-        if (locationPermission()){
+        if (locationPermission()) {
             supportFragmentManager.beginTransaction().replace(R.id.fragment_frame, MapFragment()).commit()
         } else {
             supportFragmentManager.beginTransaction().replace(R.id.fragment_frame, LocationPermissionFragment()).commit()
@@ -133,10 +133,10 @@ class MainActivity :
 
     // Si occupa del risultato delle richieste
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        when(requestCode) {
+        when (requestCode) {
             PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION -> {
                 // Se la richiesta viene cancellata gli array risultanti sono vuoti
-                if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Permessi ottenuti
                     addFragment()
                 } else {
@@ -197,7 +197,7 @@ class MainActivity :
                             typeText1.text = currentNetwork
                             intensity = getWifiIntensity()
                             currentIntensity = intensity
-                            intensityText1.text = getString(R.string.intensity1, intensity, precision-1)
+                            intensityText1.text = getString(R.string.intensity1, intensity, precision - 1)
                             getQuality(intensity)
                         }
                     } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
@@ -209,7 +209,7 @@ class MainActivity :
                             typeText1.text = currentNetwork
                             intensity = networkIntensity
                             currentIntensity = intensity
-                            intensityText1.text = getString(R.string.intensity1,  intensity, precision-1)
+                            intensityText1.text = getString(R.string.intensity1, intensity, precision - 1)
                             getQuality(intensity)
                         }
                     }
@@ -221,7 +221,7 @@ class MainActivity :
                 // mostrando informazioni sbagliate a schermo. Si assicura quindi che realmente non ci sia nessuna rete
                 // attiva
                 val networkInfo = connectivityManager!!.activeNetworkInfo
-                if (networkInfo==null || !networkInfo.isConnected) {
+                if (networkInfo == null || !networkInfo.isConnected) {
                     runOnUiThread {
                         nameText1.text = getString(R.string.not_connected)
                         currentNetwork = getString(R.string.none)
@@ -307,22 +307,22 @@ class MainActivity :
         if (locationPermission()) {
             edgeItem.isEnabled = true
             edgeItem.actionView.edge_switch.isEnabled = true
-            if(edgeBoolean) edgeItem.setIcon(R.drawable.ic_cellular_on)
+            if (edgeBoolean) edgeItem.setIcon(R.drawable.ic_cellular_on)
             else edgeItem.setIcon(R.drawable.ic_cellular_off)
 
             umtsItem.isEnabled = true
             umtsItem.actionView.umts_switch.isEnabled = true
-            if(umtsBoolean) umtsItem.setIcon(R.drawable.ic_cellular_on)
+            if (umtsBoolean) umtsItem.setIcon(R.drawable.ic_cellular_on)
             else umtsItem.setIcon(R.drawable.ic_cellular_off)
 
             lteItem.isEnabled = true
             lteItem.actionView.lte_switch.isEnabled = true
-            if(lteBoolean) lteItem.setIcon(R.drawable.ic_cellular_on)
+            if (lteBoolean) lteItem.setIcon(R.drawable.ic_cellular_on)
             else lteItem.setIcon(R.drawable.ic_cellular_off)
 
             wifiItem.isEnabled = true
             wifiItem.actionView.wifi_switch.isEnabled = true
-            if(wifiBoolean) wifiItem.setIcon(R.drawable.ic_wifi_on)
+            if (wifiBoolean) wifiItem.setIcon(R.drawable.ic_wifi_on)
             else wifiItem.setIcon(R.drawable.ic_wifi_off)
 
             satelliteItem.isEnabled = true
@@ -334,22 +334,22 @@ class MainActivity :
         } else {
             edgeItem.isEnabled = false
             edgeItem.actionView.edge_switch.isEnabled = false
-            if(edgeBoolean) edgeItem.setIcon(R.drawable.ic_cellular_on)
+            if (edgeBoolean) edgeItem.setIcon(R.drawable.ic_cellular_on)
             else edgeItem.setIcon(R.drawable.ic_cellular_off1)
 
             umtsItem.isEnabled = false
             umtsItem.actionView.umts_switch.isEnabled = false
-            if(umtsBoolean) umtsItem.setIcon(R.drawable.ic_cellular_on)
+            if (umtsBoolean) umtsItem.setIcon(R.drawable.ic_cellular_on)
             else umtsItem.setIcon(R.drawable.ic_cellular_off1)
 
             lteItem.isEnabled = false
             lteItem.actionView.lte_switch.isEnabled = false
-            if(lteBoolean) lteItem.setIcon(R.drawable.ic_cellular_on)
+            if (lteBoolean) lteItem.setIcon(R.drawable.ic_cellular_on)
             else lteItem.setIcon(R.drawable.ic_cellular_off1)
 
             wifiItem.isEnabled = false
             wifiItem.actionView.wifi_switch.isEnabled = false
-            if(wifiBoolean) wifiItem.setIcon(R.drawable.ic_wifi_on)
+            if (wifiBoolean) wifiItem.setIcon(R.drawable.ic_wifi_on)
             else wifiItem.setIcon(R.drawable.ic_wifi_off1)
 
             satelliteItem.isEnabled = false
@@ -378,7 +378,8 @@ class MainActivity :
                     // Svuota le liste
                     clearLists(false)
                 }
-                alert.setNegativeButton(R.string.alert_dialog_negative) { _, _ ->  //niente
+                alert.setNegativeButton(R.string.alert_dialog_negative) { _, _ ->
+                    //niente
                 }
                 val dialog = alert.create()
                 dialog.show()
@@ -505,7 +506,7 @@ class MainActivity :
         when (int) {
             0 -> {
                 string = resources.getString(R.string.none)
-                color = when(hexagonsColors) {
+                color = when (hexagonsColors) {
                     0 -> ContextCompat.getColor(this, R.color.none0)
                     1 -> ContextCompat.getColor(this, R.color.none1)
                     2 -> ContextCompat.getColor(this, R.color.none2)
@@ -523,7 +524,7 @@ class MainActivity :
             }
             2 -> {
                 string = resources.getString(R.string.moderate)
-                color = when(hexagonsColors) {
+                color = when (hexagonsColors) {
                     0 -> ContextCompat.getColor(this, R.color.moderate0)
                     1 -> ContextCompat.getColor(this, R.color.moderate1)
                     2 -> ContextCompat.getColor(this, R.color.moderate2)
@@ -532,7 +533,7 @@ class MainActivity :
             }
             3 -> {
                 string = resources.getString(R.string.good)
-                color = when(hexagonsColors) {
+                color = when (hexagonsColors) {
                     0 -> ContextCompat.getColor(this, R.color.good0)
                     1 -> ContextCompat.getColor(this, R.color.good1)
                     2 -> ContextCompat.getColor(this, R.color.good2)
@@ -541,7 +542,7 @@ class MainActivity :
             }
             4 -> {
                 string = resources.getString(R.string.great)
-                color = when(hexagonsColors) {
+                color = when (hexagonsColors) {
                     0 -> ContextCompat.getColor(this, R.color.great0)
                     1 -> ContextCompat.getColor(this, R.color.great1)
                     2 -> ContextCompat.getColor(this, R.color.great2)

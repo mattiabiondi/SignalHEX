@@ -2,17 +2,22 @@ package biondi.mattia.signalhex
 
 import android.app.Activity
 import android.content.Context
-import android.support.v4.app.Fragment
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
+import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.google.android.gms.location.*
-import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Polygon
+import com.google.android.gms.maps.model.PolygonOptions
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.google.maps.android.geometry.Point
@@ -20,7 +25,6 @@ import kotlinx.android.synthetic.main.content_layout.*
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-
 import kotlin.math.abs
 
 // Lista delle coordinate salvate
@@ -53,7 +57,7 @@ var hexagonsColors = 0
 // Trasparenza degli esagoni
 var hexagonsAlpha = 0
 
-class MapFragment: Fragment(), OnMapReadyCallback {
+class MapFragment : Fragment(), OnMapReadyCallback {
 
     // Costrutto del FusedLocationProviderClient
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
@@ -150,7 +154,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         // Ottiene la miglior e più recente posizione posizione del dispositivo, che può anche essere nulla nei casi in cui la posizione non sia disponibile
         try {
             fusedLocationProviderClient.lastLocation
-                    .addOnSuccessListener { location : Location? ->
+                    .addOnSuccessListener { location: Location? ->
                         currentLocation = location
                         map?.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                 LatLng(currentLocation?.latitude as Double, currentLocation?.longitude as Double), map!!.maxZoomLevel))
@@ -261,10 +265,9 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                 firstPolygon = true
         }
 
-        if(index != -1 && !firstPolygon) {
+        if (index != -1 && !firstPolygon) {
             updateHexagon(polygonList[index], intensity)
-        }
-        else {
+        } else {
             addHexagon(polygonList, hexagonList, hexagon, intensity, boolean)
         }
     }
@@ -319,32 +322,32 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     // Ottiene il colore dell'esagono
     private fun getColor(intensity: Int): Int {
-        return when(intensity) {
-            0 -> when(hexagonsColors) {
+        return when (intensity) {
+            0 -> when (hexagonsColors) {
                 0 -> ContextCompat.getColor(activity as Activity, R.color.none0)
                 1 -> ContextCompat.getColor(activity as Activity, R.color.none1)
                 2 -> ContextCompat.getColor(activity as Activity, R.color.none2)
                 else -> Color.TRANSPARENT
             }
-            1 -> when(hexagonsColors) {
+            1 -> when (hexagonsColors) {
                 0 -> ContextCompat.getColor(activity as Activity, R.color.poor0)
                 1 -> ContextCompat.getColor(activity as Activity, R.color.poor1)
                 2 -> ContextCompat.getColor(activity as Activity, R.color.poor2)
                 else -> Color.TRANSPARENT
             }
-            2 -> when(hexagonsColors) {
+            2 -> when (hexagonsColors) {
                 0 -> ContextCompat.getColor(activity as Activity, R.color.moderate0)
                 1 -> ContextCompat.getColor(activity as Activity, R.color.moderate1)
                 2 -> ContextCompat.getColor(activity as Activity, R.color.moderate2)
                 else -> Color.TRANSPARENT
             }
-            3 -> when(hexagonsColors) {
+            3 -> when (hexagonsColors) {
                 0 -> ContextCompat.getColor(activity as Activity, R.color.good0)
                 1 -> ContextCompat.getColor(activity as Activity, R.color.good1)
                 2 -> ContextCompat.getColor(activity as Activity, R.color.good2)
                 else -> Color.TRANSPARENT
             }
-            4 -> when(hexagonsColors) {
+            4 -> when (hexagonsColors) {
                 0 -> ContextCompat.getColor(activity as Activity, R.color.great0)
                 1 -> ContextCompat.getColor(activity as Activity, R.color.great1)
                 2 -> ContextCompat.getColor(activity as Activity, R.color.great2)
@@ -358,14 +361,14 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     private fun saveLists() {
         val gson = Gson()
         for (i in 0 until 3) {
-            val name = when(i) {
+            val name = when (i) {
                 0 -> "location.json"
                 1 -> "network.json"
                 2 -> "intensity.json"
                 else -> null
             }
 
-            val list = when(i) {
+            val list = when (i) {
                 0 -> locationList
                 1 -> networkList
                 2 -> intensityList
@@ -397,7 +400,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     private fun loadLists() {
         val gson = Gson()
         for (i in 0 until 3) {
-            val name = when(i) {
+            val name = when (i) {
                 0 -> "location.json"
                 1 -> "network.json"
                 2 -> "intensity.json"
@@ -409,15 +412,15 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                 val inputStreamReader = InputStreamReader(fileInputStream)
                 val bufferedReader = BufferedReader(inputStreamReader)
                 val stringBuilder = StringBuilder()
-                var line =  bufferedReader.readLine()
+                var line = bufferedReader.readLine()
                 while (line != null) {
                     stringBuilder.append(line)
-                    line =  bufferedReader.readLine()
+                    line = bufferedReader.readLine()
                 }
-                when(i) {
-                    0 -> locationList = gson.fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<LatLng>>(){}.type)
-                    1 -> networkList = gson.fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<String>>(){}.type)
-                    2 -> intensityList = gson.fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<Int>>(){}.type)
+                when (i) {
+                    0 -> locationList = gson.fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<LatLng>>() {}.type)
+                    1 -> networkList = gson.fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<String>>() {}.type)
+                    2 -> intensityList = gson.fromJson(stringBuilder.toString(), object : TypeToken<ArrayList<Int>>() {}.type)
                 }
             } else return
         }
@@ -447,7 +450,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
     // Salva le preferenze in memoria
     private fun savePreferences() {
         val sharedPref = activity!!.getPreferences(Context.MODE_PRIVATE) ?: return
-        with (sharedPref.edit()) {
+        with(sharedPref.edit()) {
             putBoolean(getString(R.string.edge), edgeBoolean)
             putBoolean(getString(R.string.umts), umtsBoolean)
             putBoolean(getString(R.string.lte), lteBoolean)
