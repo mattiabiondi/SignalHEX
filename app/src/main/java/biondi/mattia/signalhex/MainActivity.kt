@@ -463,7 +463,7 @@ class MainActivity :
     private fun createPhoneStateListener() {
         phoneStateListener = object : PhoneStateListener() {
             override fun onSignalStrengthsChanged(signalStrength: SignalStrength) {
-                networkIntensity = signalStrength.level
+                networkIntensity = signalStrength.level // API level 23
             }
         }
     }
