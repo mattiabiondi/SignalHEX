@@ -418,7 +418,7 @@ class MainActivity :
                 setMapType()
             }
             R.id.hexagons_dimension -> {
-                HexagonsDimension().show(fragmentManager, "hexagons dimension")
+                HexagonsSize().show(fragmentManager, "hexagons size")
             }
             R.id.hexagons_colors -> {
                 HexagonsColors().show(fragmentManager, "hexagons colors")

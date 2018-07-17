@@ -31,8 +31,8 @@
     <string name="group_title">Networks to show</string>
     <string name="map_satellite">Satellite map</string>
     <string name="hexagons">Hexagons</string>
-    <string name="hexagons_dimension">Dimension</string>
-    <string-array name="hexagons_dimension_list">
+    <string name="size">Size</string>
+    <string-array name="hexagons_size_list">
         <item>Tiny</item>
         <item>Little</item>
         <item>Medium</item>
@@ -51,6 +51,9 @@
         <item>75%</item>
         <item>100%</item>
     </string-array>
-    <string name="hexagons_transparency">Transparency</string>
-    <string name="hexagons_colors">Colors</string>
+    <string name="transparency">Transparency</string>
+    <string name="colors">Colors</string>
+    <string name="hexagon_size">Hexagon\'s size</string>
+    <string name="hexagons_colors">Hexagon\'s colors</string>
+    <string name="hexagon_transparency">Hexagon\'s transparency</string>
 </resources>

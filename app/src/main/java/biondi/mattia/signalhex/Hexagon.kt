@@ -104,12 +104,12 @@ class HexagonLayout(val orientation: Orientation, val size: Point, private val o
 }
 
 // Modifica le dimensioni degli esagoni
-class HexagonsDimension : DialogFragment() {
+class HexagonsSize : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(activity)
-        builder.setTitle("Hexagons dimension")
-                .setSingleChoiceItems(R.array.hexagons_dimension_list, hexagonsDimension) { _, which ->
-                    hexagonsDimension = which
+        builder.setTitle(getString(R.string.hexagon_size))
+                .setSingleChoiceItems(R.array.hexagons_size_list, hexagonsSize) { _, which ->
+                    hexagonsSize = which
                     dismiss()
                     activity.recreate() //TODO penso si possa fare di meglio 1
                 }
@@ -121,7 +121,7 @@ class HexagonsDimension : DialogFragment() {
 class HexagonsColors : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(activity)
-        builder.setTitle("Hexagons colors")
+        builder.setTitle(getString(R.string.hexagons_colors))
                 .setSingleChoiceItems(R.array.hexagons_colors_list, hexagonsColors) { _, which ->
                     hexagonsColors = which
                     dismiss()
@@ -135,7 +135,7 @@ class HexagonsColors : DialogFragment() {
 class HexagonsTransparency : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(activity)
-        builder.setTitle("Hexagons transparency")
+        builder.setTitle(getString(R.string.hexagon_transparency))
                 .setSingleChoiceItems(R.array.hexagons_transparency_list, hexagonsAlpha) { _, which ->
                     hexagonsAlpha = which
                     dismiss()

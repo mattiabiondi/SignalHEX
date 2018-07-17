@@ -48,15 +48,15 @@
                 <item
                     android:id="@+id/hexagons_dimension"
                     android:icon="@drawable/ic_zoom_out"
-                    android:title="@string/hexagons_dimension"/>
+                    android:title="@string/size"/>
                 <item
                     android:id="@+id/hexagons_colors"
                     android:icon="@drawable/ic_colors"
-                    android:title="@string/hexagons_colors"/>
+                    android:title="@string/colors"/>
                 <item
                     android:id="@+id/hexagons_transparency"
                     android:icon="@drawable/ic_blur"
-                    android:title="@string/hexagons_transparency"/>
+                    android:title="@string/transparency"/>
             </menu>
         </item>
     </group>

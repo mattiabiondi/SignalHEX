@@ -51,7 +51,7 @@ var firstHexagon: HexagonLayout? = null
 var map: GoogleMap? = null
 
 // Dimensione degli esagoni
-var hexagonsDimension = 1
+var hexagonsSize = 1
 // Colore degli esagoni
 var hexagonsColors = 0
 // Trasparenza degli esagoni
@@ -242,7 +242,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private fun createHexagon(location: LatLng): Hexagon {
         val orientation = layout_flat
         val ratio = Point(0.7, 1.0) // Latitudine e longitudine non hanno un aspect ratio regolare
-        val scale = (hexagonsDimension + 1) * 0.00000375
+        val scale = (hexagonsSize + 1) * 0.00000375
         val size = Point(ratio.x * scale, ratio.y * scale)
 
         lateinit var hexagon: Hexagon
@@ -458,9 +458,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
             putBoolean(getString(R.string.map_satellite), satelliteBoolean)
 
-            putInt(getString(R.string.hexagons_dimension), hexagonsDimension)
-            putInt(getString(R.string.hexagons_colors), hexagonsColors)
-            putInt(getString(R.string.hexagons_transparency), hexagonsAlpha)
+            putInt(getString(R.string.size), hexagonsSize)
+            putInt(getString(R.string.colors), hexagonsColors)
+            putInt(getString(R.string.transparency), hexagonsAlpha)
 
             apply()
         }
@@ -478,9 +478,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         satelliteBoolean = sharedPref.getBoolean(getString(R.string.map_satellite), false)
 
-        hexagonsDimension = sharedPref.getInt(getString(R.string.hexagons_dimension), 1)
-        hexagonsColors = sharedPref.getInt(getString(R.string.hexagons_colors), 0)
-        hexagonsAlpha = sharedPref.getInt(getString(R.string.hexagons_transparency), 0)
+        hexagonsSize = sharedPref.getInt(getString(R.string.size), 1)
+        hexagonsColors = sharedPref.getInt(getString(R.string.colors), 0)
+        hexagonsAlpha = sharedPref.getInt(getString(R.string.transparency), 0)
     }
 }
 
